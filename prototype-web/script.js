@@ -1282,6 +1282,10 @@ function onTrackPointerUp(event) {
 
 openButtons.forEach((button) => {
   button.addEventListener("click", () => {
+    if (button.dataset.openApp === "pulse") {
+      openPulseAtStage(1);
+      return;
+    }
     setView(button.dataset.openApp);
   });
 });
