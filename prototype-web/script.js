@@ -26,6 +26,14 @@ const PLAN_PRESETS = {
   standard: { 2: 10, 3: 15, 4: 20 },
   long: { 2: 15, 3: 20, 4: 30 }
 };
+const USAGE_STORAGE_KEY = "gentle-friction-usage-v1";
+const SETTINGS_STORAGE_KEY = "gentle-friction-settings-v1";
+const APP_CONFIG = [
+  { id: "pulse", name: "TikTok" },
+  { id: "instagram", name: "Instagram" },
+  { id: "youtube", name: "YouTube" },
+  { id: "snapchat", name: "Snapchat" }
+];
 const STATS_DAYS = [
   {
     label: "Mon",
@@ -127,15 +135,96 @@ const STATS_DAYS = [
   }
 ];
 
+function defaultSettings() {
+  return {
+    monitoredApps: ["pulse"],
+    thresholds: { 2: 5, 3: 10, 4: 15 },
+    effects: ["blur", "fade", "tint"],
+    goal: "study",
+    interventionStyle: "balanced"
+  };
+}
+
+function loadSettings() {
+  const fallback = defaultSettings();
+
+  try {
+    const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!raw) {
+      return fallback;
+    }
+
+    const parsed = JSON.parse(raw);
+    const monitoredApps = Array.isArray(parsed.monitoredApps)
+      ? parsed.monitoredApps.filter((appId) => APP_CONFIG.some((app) => app.id === appId))
+      : fallback.monitoredApps;
+    const effects = Array.isArray(parsed.effects)
+      ? parsed.effects.filter((effect) => ["blur", "fade", "tint"].includes(effect))
+      : fallback.effects;
+
+    return {
+      monitoredApps: monitoredApps.length ? monitoredApps : fallback.monitoredApps,
+      thresholds: {
+        2: Number(parsed.thresholds?.[2]) || fallback.thresholds[2],
+        3: Number(parsed.thresholds?.[3]) || fallback.thresholds[3],
+        4: Number(parsed.thresholds?.[4]) || fallback.thresholds[4]
+      },
+      effects: effects.length ? effects : fallback.effects,
+      goal: parsed.goal || fallback.goal,
+      interventionStyle: parsed.interventionStyle || fallback.interventionStyle
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function defaultUsageData() {
+  return {
+    appOpenCount: 0,
+    protectionStartCount: 0,
+    sessions: []
+  };
+}
+
+function loadUsageData() {
+  try {
+    const raw = window.localStorage.getItem(USAGE_STORAGE_KEY);
+    if (!raw) {
+      return defaultUsageData();
+    }
+
+    const parsed = JSON.parse(raw);
+    return {
+      appOpenCount: Number(parsed.appOpenCount) || 0,
+      protectionStartCount: Number(parsed.protectionStartCount) || 0,
+      sessions: Array.isArray(parsed.sessions)
+        ? parsed.sessions
+            .filter((session) => session && typeof session === "object")
+            .map((session) => ({
+              startedAt: Number(session.startedAt) || Date.now(),
+              endedAt: Number(session.endedAt) || Date.now(),
+              durationSeconds: Math.max(1, Number(session.durationSeconds) || 1),
+              result: session.result || "Paused",
+              app: session.app || "TikTok"
+            }))
+        : []
+    };
+  } catch {
+    return defaultUsageData();
+  }
+}
+
+const initialSettings = loadSettings();
+
 const state = {
   activeView: "home",
   gentlePage: "overview",
-  monitoredPulse: true,
+  monitoredApps: new Set(initialSettings.monitoredApps),
   onboardingSeen: true,
-  goal: "study",
-  interventionStyle: "balanced",
-  thresholds: { 2: 5, 3: 10, 4: 15 },
-  effects: new Set(["blur", "fade", "tint"]),
+  goal: initialSettings.goal,
+  interventionStyle: initialSettings.interventionStyle,
+  thresholds: { ...initialSettings.thresholds },
+  effects: new Set(initialSettings.effects),
   elapsedSeconds: 0,
   currentVideoIndex: FEED_ITEMS.length,
   currentStage: 1,
@@ -153,7 +242,12 @@ const state = {
   lastLoopAt: performance.now(),
   previewProgress: 0,
   previewDirection: 1,
-  selectedStatsDay: 3
+  selectedStatsDay: 3,
+  protectionRunning: false,
+  protectionStartedAt: 0,
+  protectionAppLabel: "",
+  lastUsageSecond: -1,
+  usageData: loadUsageData()
 };
 
 const statusTime = document.getElementById("statusTime");
@@ -170,7 +264,7 @@ const gfPages = [...document.querySelectorAll("[data-gf-view]")];
 const goalButtons = [...document.querySelectorAll("[data-goal]")];
 const styleButtons = [...document.querySelectorAll("[data-style]")];
 const presetButtons = [...document.querySelectorAll("[data-plan-preset]")];
-const targetAppButton = document.querySelector("[data-target-app='pulse']");
+const targetAppButtons = [...document.querySelectorAll("[data-target-app]")];
 const thresholdSliders = [...document.querySelectorAll("[data-slider-stage]")];
 const adjustStageButtons = [...document.querySelectorAll("[data-adjust-stage]")];
 const effectButtons = [...document.querySelectorAll("[data-effect]")];
@@ -186,6 +280,10 @@ const previewVideo = document.getElementById("previewVideo");
 const overviewGoalLabel = document.getElementById("overviewGoalLabel");
 const homeNextCueValue = document.getElementById("homeNextCueValue");
 const homeStyleValue = document.getElementById("homeStyleValue");
+const startProtectionButton = document.getElementById("startProtectionButton");
+const homePausesValue = document.getElementById("homePausesValue");
+const homePausesCopy = document.getElementById("homePausesCopy");
+const settingsAppStatus = document.getElementById("settingsAppStatus");
 const taskLaunchMeta = document.getElementById("taskLaunchMeta");
 const taskGoalChip = document.getElementById("taskGoalChip");
 const taskStyleChip = document.getElementById("taskStyleChip");
@@ -204,6 +302,14 @@ const statsDetailRate = document.getElementById("statsDetailRate");
 const statsDetailMode = document.getElementById("statsDetailMode");
 const statsMomentList = document.getElementById("statsMomentList");
 const statsMomentsBadge = document.getElementById("statsMomentsBadge");
+const statsSummarySessions = document.getElementById("statsSummarySessions");
+const statsSummaryCopy = document.getElementById("statsSummaryCopy");
+const statsSummaryTime = document.getElementById("statsSummaryTime");
+const statsOpenCount = document.getElementById("statsOpenCount");
+const statsStartCount = document.getElementById("statsStartCount");
+const statsPauseCount = document.getElementById("statsPauseCount");
+const statsSessionsBadge = document.getElementById("statsSessionsBadge");
+const statsSessionList = document.getElementById("statsSessionList");
 const demoTimer = document.getElementById("demoTimer");
 const stagePill = document.getElementById("stagePill");
 const stageMessage = document.getElementById("stageMessage");
@@ -247,6 +353,35 @@ function formatThreshold(value) {
   return value >= 60 ? `${value / 60} hr` : `${value} min`;
 }
 
+function formatUsageDuration(totalSeconds) {
+  const safeSeconds = Math.max(0, Math.round(totalSeconds));
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
+  const seconds = safeSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${String(minutes).padStart(2, "0")}m`;
+  }
+  if (minutes > 0) {
+    return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  }
+  return `${seconds}s`;
+}
+
+function formatUsageTime(timestamp) {
+  const date = new Date(timestamp);
+  const hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+function formatUsageDate(timestamp) {
+  return new Date(timestamp).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric"
+  });
+}
+
 function stageElapsed() {
   return DEMO_MODE ? state.elapsedSeconds : state.elapsedSeconds / 60;
 }
@@ -283,10 +418,217 @@ function humanStyle(style) {
   }[style];
 }
 
+function saveSettings() {
+  window.localStorage.setItem(
+    SETTINGS_STORAGE_KEY,
+    JSON.stringify({
+      monitoredApps: [...state.monitoredApps],
+      thresholds: state.thresholds,
+      effects: [...state.effects],
+      goal: state.goal,
+      interventionStyle: state.interventionStyle
+    })
+  );
+}
+
+function saveUsageData() {
+  window.localStorage.setItem(
+    USAGE_STORAGE_KEY,
+    JSON.stringify({
+      appOpenCount: state.usageData.appOpenCount,
+      protectionStartCount: state.usageData.protectionStartCount,
+      sessions: state.usageData.sessions.slice(0, 30)
+    })
+  );
+}
+
+function appNameById(appId) {
+  return APP_CONFIG.find((app) => app.id === appId)?.name || "TikTok";
+}
+
+function enabledAppIds() {
+  return APP_CONFIG.map((app) => app.id).filter((appId) => state.monitoredApps.has(appId));
+}
+
+function hasEnabledApps() {
+  return enabledAppIds().length > 0;
+}
+
+function currentProtectedAppLabel() {
+  const appIds = enabledAppIds();
+  if (!appIds.length) {
+    return "No apps selected";
+  }
+
+  const firstName = appNameById(appIds[0]);
+  return appIds.length === 1 ? firstName : `${firstName} + ${appIds.length - 1} apps`;
+}
+
+function activeProtectionSeconds() {
+  if (!state.protectionRunning || !state.protectionStartedAt) {
+    return 0;
+  }
+
+  return Math.max(1, Math.round((Date.now() - state.protectionStartedAt) / 1000));
+}
+
+function totalProtectedSeconds() {
+  return state.usageData.sessions.reduce((total, session) => total + session.durationSeconds, 0) + activeProtectionSeconds();
+}
+
+function incrementOpenCount() {
+  state.usageData.appOpenCount += 1;
+  saveUsageData();
+}
+
+function stopProtectionSession(result = "Paused") {
+  if (!state.protectionRunning || !state.protectionStartedAt) {
+    return;
+  }
+
+  const endedAt = Date.now();
+  state.usageData.sessions.unshift({
+    startedAt: state.protectionStartedAt,
+    endedAt,
+    durationSeconds: Math.max(1, Math.round((endedAt - state.protectionStartedAt) / 1000)),
+    result,
+    app: state.protectionAppLabel || currentProtectedAppLabel()
+  });
+  state.usageData.sessions = state.usageData.sessions.slice(0, 30);
+  state.protectionRunning = false;
+  state.protectionStartedAt = 0;
+  state.protectionAppLabel = "";
+  saveUsageData();
+}
+
+function startProtectionSession() {
+  if (!hasEnabledApps()) {
+    openGentleShortcut("settings");
+    return;
+  }
+
+  if (state.protectionRunning) {
+    stopProtectionSession();
+    syncUsageStats();
+    return;
+  }
+
+  state.protectionRunning = true;
+  state.protectionStartedAt = Date.now();
+  state.protectionAppLabel = currentProtectedAppLabel();
+  state.usageData.protectionStartCount += 1;
+  saveUsageData();
+  syncUsageStats();
+}
+
+function syncUsageStats() {
+  const liveCount = state.protectionRunning ? 1 : 0;
+  const recordedCount = state.usageData.sessions.length;
+  const totalCount = recordedCount + liveCount;
+  const pauseCount = state.usageData.sessions.length;
+  const totalDuration = totalProtectedSeconds();
+  state.lastUsageSecond = state.protectionRunning ? activeProtectionSeconds() : -1;
+
+  if (startProtectionButton) {
+    if (!hasEnabledApps()) {
+      startProtectionButton.textContent = "Select an app";
+    } else if (state.protectionRunning) {
+      startProtectionButton.textContent = "Stop protection";
+    } else {
+      startProtectionButton.textContent = "Start protection";
+    }
+  }
+
+  if (homePausesValue) {
+    homePausesValue.textContent = String(pauseCount);
+  }
+  if (homePausesCopy) {
+    homePausesCopy.textContent = pauseCount > 0 ? "Recorded pauses" : "No pauses yet";
+  }
+  if (settingsAppStatus) {
+    settingsAppStatus.textContent = state.monitoredApps.has("pulse") ? "Protection on" : "Protection off";
+  }
+  targetAppButtons.forEach((button) => {
+    const isSelected = state.monitoredApps.has(button.dataset.targetApp);
+    button.classList.toggle("is-selected", isSelected);
+    const status = button.querySelector("[data-app-status]");
+    if (status) {
+      status.textContent = isSelected ? "Protection on" : "Protection off";
+    }
+  });
+  if (statsSummarySessions) {
+    statsSummarySessions.textContent = `${totalCount} ${totalCount === 1 ? "session" : "sessions"}`;
+  }
+  if (statsSummaryCopy) {
+    if (state.protectionRunning) {
+      statsSummaryCopy.textContent = "Protection is running now.";
+    } else if (recordedCount > 0) {
+      statsSummaryCopy.textContent = "Updated each time you use Gentle Friction.";
+    } else {
+      statsSummaryCopy.textContent = "Start protection to record your first session.";
+    }
+  }
+  if (statsSummaryTime) {
+    statsSummaryTime.textContent = formatUsageDuration(totalDuration);
+  }
+  if (statsOpenCount) {
+    statsOpenCount.textContent = String(state.usageData.appOpenCount);
+  }
+  if (statsStartCount) {
+    statsStartCount.textContent = String(state.usageData.protectionStartCount);
+  }
+  if (statsPauseCount) {
+    statsPauseCount.textContent = String(pauseCount);
+  }
+  if (statsSessionsBadge) {
+    statsSessionsBadge.textContent = state.protectionRunning ? "Live" : `${recordedCount} records`;
+  }
+  if (statsSessionList) {
+    const rows = [];
+
+    if (state.protectionRunning) {
+      rows.push(`
+        <article class="moment-row">
+          <span class="moment-time">${formatUsageTime(state.protectionStartedAt)}</span>
+          <div class="moment-copy">
+            <strong>Live · ${formatUsageDuration(activeProtectionSeconds())}</strong>
+            <span>${state.protectionAppLabel || currentProtectedAppLabel()} · Protection on · ${formatUsageDate(state.protectionStartedAt)}</span>
+          </div>
+        </article>
+      `);
+    }
+
+    state.usageData.sessions.forEach((session) => {
+      rows.push(`
+        <article class="moment-row">
+          <span class="moment-time">${formatUsageTime(session.startedAt)}</span>
+          <div class="moment-copy">
+            <strong>${formatUsageDuration(session.durationSeconds)} protected</strong>
+            <span>${session.app} · ${session.result} · ${formatUsageDate(session.startedAt)}</span>
+          </div>
+        </article>
+      `);
+    });
+
+    if (!rows.length) {
+      rows.push(`
+        <article class="stats-empty-state">
+          <div class="moment-copy">
+            <strong>No sessions yet</strong>
+            <span>Your next protection session will appear here.</span>
+          </div>
+        </article>
+      `);
+    }
+
+    statsSessionList.innerHTML = rows.join("");
+  }
+}
+
 function getStageByElapsed() {
   const elapsed = stageElapsed();
 
-  if (!state.monitoredPulse) {
+  if (!hasEnabledApps()) {
     return 1;
   }
   if (elapsed >= state.thresholds[4]) {
@@ -507,9 +849,9 @@ function updateControls() {
   if (homeStyleValue) {
     homeStyleValue.textContent = humanStyle(state.interventionStyle);
   }
-  if (targetAppButton) {
-    targetAppButton.classList.toggle("is-selected", state.monitoredPulse);
-  }
+  targetAppButtons.forEach((button) => {
+    button.classList.toggle("is-selected", state.monitoredApps.has(button.dataset.targetApp));
+  });
 
   thresholdSliders.forEach((slider) => {
     slider.value = String(state.thresholds[Number(slider.dataset.sliderStage)]);
@@ -716,7 +1058,7 @@ function syncReminderCard() {
   }
 
   reminderCard.classList.remove("hidden");
-  reminderText.textContent = `${formatThreshold(state.thresholds[2])} on TikTok. Swipe down.`;
+  reminderText.textContent = `${formatThreshold(state.thresholds[2])} on ${currentProtectedAppLabel()}. Swipe down.`;
   if (!state.reminderTimeout) {
     scheduleReminderAutoHide();
   }
@@ -824,6 +1166,7 @@ function setThreshold(stage, value) {
   state.thresholds[3] = Math.min(Math.max(state.thresholds[3], 10), 60);
   state.thresholds[4] = Math.min(Math.max(state.thresholds[4], 15), 90);
 
+  saveSettings();
   updateControls();
   syncUi();
 }
@@ -964,7 +1307,7 @@ gfQuickLinks.forEach((button) => {
 taskActionButtons.forEach((button) => {
   button.addEventListener("click", () => {
     if (button.dataset.taskAction === "start-protected") {
-      openPulseAtStage(1);
+      startProtectionSession();
       return;
     }
     if (button.dataset.taskAction === "open-settings") {
@@ -979,14 +1322,32 @@ taskActionButtons.forEach((button) => {
 
 previewStageButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    openPulseAtStage(Number(button.dataset.previewStage));
+    openGentleShortcut("settings");
   });
 });
 
-targetAppButton.addEventListener("click", () => {
-  state.monitoredPulse = !state.monitoredPulse;
-  updateControls();
-  syncUi();
+targetAppButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const appId = button.dataset.targetApp;
+    if (!appId) {
+      return;
+    }
+
+    if (state.monitoredApps.has(appId)) {
+      state.monitoredApps.delete(appId);
+    } else {
+      state.monitoredApps.add(appId);
+    }
+
+    if (!hasEnabledApps() && state.protectionRunning) {
+      stopProtectionSession("Stopped in settings");
+    }
+
+    saveSettings();
+    updateControls();
+    syncUi();
+    syncUsageStats();
+  });
 });
 
 thresholdSliders.forEach((slider) => {
@@ -1003,6 +1364,7 @@ presetButtons.forEach((button) => {
     }
 
     state.thresholds = { 2: preset[2], 3: preset[3], 4: preset[4] };
+    saveSettings();
     updateControls();
     syncUi();
   });
@@ -1024,6 +1386,7 @@ effectButtons.forEach((button) => {
     } else {
       state.effects.add(effect);
     }
+    saveSettings();
     updateControls();
     syncUi();
   });
@@ -1032,6 +1395,7 @@ effectButtons.forEach((button) => {
 goalButtons.forEach((button) => {
   button.addEventListener("click", () => {
     state.goal = button.dataset.goal;
+    saveSettings();
     updateControls();
   });
 });
@@ -1039,6 +1403,7 @@ goalButtons.forEach((button) => {
 styleButtons.forEach((button) => {
   button.addEventListener("click", () => {
     state.interventionStyle = button.dataset.style;
+    saveSettings();
     updateControls();
   });
 });
@@ -1077,11 +1442,25 @@ continueButton.addEventListener("pointerdown", (event) => {
 });
 
 returnHomeButton.addEventListener("click", () => {
+  if (state.protectionRunning) {
+    stopProtectionSession("Returned home");
+    syncUsageStats();
+  }
   setView("home");
 });
 
 takeBreakButton.addEventListener("click", () => {
+  if (state.protectionRunning) {
+    stopProtectionSession("Took a break");
+    syncUsageStats();
+  }
   setView("home");
+});
+
+window.addEventListener("beforeunload", () => {
+  if (state.protectionRunning) {
+    stopProtectionSession("Closed app");
+  }
 });
 
 window.addEventListener(
@@ -1135,6 +1514,13 @@ window.setInterval(() => {
   if (state.activeView === "gentle") {
     syncPreviewFriction(deltaMs);
   }
+
+  if (state.protectionRunning) {
+    const liveSecond = activeProtectionSeconds();
+    if (liveSecond !== state.lastUsageSecond) {
+      syncUsageStats();
+    }
+  }
 }, 1000 / 24);
 
 window.addEventListener("resize", () => {
@@ -1187,9 +1573,10 @@ window.addEventListener("blur", () => {
 updateStatusTime();
 document.body.classList.toggle("is-demo-mode", DEMO_MODE);
 buildFeed();
+incrementOpenCount();
 setGentlePage("overview");
 updateControls();
-syncStatsDetail();
+syncUsageStats();
 if (previewStageValue && previewFrame) {
   syncPreviewFriction();
 }

@@ -10,7 +10,7 @@
     <title>Gentle Friction</title>
     <link rel="manifest" href="../manifest.webmanifest" />
     <link rel="apple-touch-icon" href="../Logo.png" />
-    <link rel="stylesheet" href="./style.css?v=ux-fix-14" />
+    <link rel="stylesheet" href="./style.css?v=product-settings-3" />
   </head>
   <body>
     <main class="stage">
@@ -35,12 +35,12 @@
                   <p>Gentle Friction</p>
                 </button>
 
-                <button class="home-app home-app-large clickable" data-open-app="pulse" type="button">
+                <div class="home-app home-app-large home-app-static" aria-hidden="true">
                   <span class="home-icon home-icon-large icon-pulse-home">
                     <img class="app-icon-image" src="../TikTok.png" alt="" />
                   </span>
                   <p>TikTok</p>
-                </button>
+                </div>
               </div>
 
               <div class="home-search">Search</div>
@@ -75,56 +75,14 @@
                     </div>
                     <h2 class="brand-title">Gentle Friction</h2>
                     <p class="brand-subtitle">A self-regulation layer for short-video overuse</p>
-                    <section class="status-strip" aria-label="Protection status">
-                      <article class="status-chip">
-                        <span>Status</span>
-                        <strong>On</strong>
-                      </article>
-                      <article class="status-chip">
-                        <span>Next cue</span>
-                        <strong id="homeNextCueValue">5 min</strong>
-                      </article>
-                      <article class="status-chip">
-                        <span>Mode</span>
-                        <strong id="homeStyleValue">Balanced</strong>
-                      </article>
-                    </section>
-                    <section class="focus-summary" aria-label="Active protection summary">
-                      <button class="summary-card" data-task-action="start-protected" type="button">
-                        <span>Protected app</span>
-                        <strong>TikTok</strong>
-                      </button>
-                      <button class="summary-card" data-task-action="open-settings" type="button">
-                        <span>Current goal</span>
-                        <strong id="overviewGoalLabel">Study break</strong>
-                      </button>
-                    </section>
-
-                    <section class="stage-flow" aria-label="Intervention flow">
-                      <button class="stage-preview-card" data-preview-stage="2" type="button">
-                        <span>1</span>
-                        <strong>Awareness</strong>
-                        <p>Bring time back into view.</p>
-                      </button>
-                      <button class="stage-preview-card" data-preview-stage="3" type="button">
-                        <span>2</span>
-                        <strong>Soft friction</strong>
-                        <p>Reduce visual reward gently.</p>
-                      </button>
-                      <button class="stage-preview-card" data-preview-stage="4" type="button">
-                        <span>3</span>
-                        <strong>Choice</strong>
-                        <p>Ask for an intentional decision.</p>
-                      </button>
-                    </section>
-
-                    <div class="overview-actions">
-                      <button class="primary-button home-primary-action" data-task-action="start-protected" type="button">
+                    <div class="overview-actions overview-actions-single">
+                      <button
+                        class="primary-button home-primary-action"
+                        data-task-action="start-protected"
+                        id="startProtectionButton"
+                        type="button"
+                      >
                         Start protection
-                      </button>
-                      <button class="secondary-button home-secondary-action" data-task-action="open-settings" type="button">
-                        <strong>Edit plan</strong>
-                        <small>Goal and style</small>
                       </button>
                     </div>
 
@@ -134,35 +92,88 @@
                       </span>
                       <span class="life-card-divider" aria-hidden="true"></span>
                       <span class="life-card-copy">
-                        <strong>23 <span>pauses</span></strong>
-                        <small>back to study</small>
+                        <strong><span id="homePausesValue">0</span> <span>pauses</span></strong>
+                        <small id="homePausesCopy">No pauses yet</small>
                       </span>
                       <span class="life-card-arrow" aria-hidden="true">&rsaquo;</span>
                     </button>
                   </section>
                 </section>
 
-                <section class="gf-page" data-gf-view="tasks">
+                <section class="gf-page" data-gf-view="settings">
                   <section class="surface-card">
                     <div class="section-head">
                       <div>
-                        <p class="overline">Today</p>
-                        <h3>Active plan</h3>
+                        <p class="overline">Connected apps</p>
+                        <h3>Protected apps</h3>
                       </div>
-                      <span class="mini-badge">Ready</span>
+                      <span class="mini-badge">Multi-app</span>
                     </div>
-                    <button class="task-launch" data-task-action="start-protected" type="button">
-                      <div class="task-launch-copy">
-                        <strong>Protected TikTok</strong>
-                        <span id="taskLaunchMeta">Study break · Balanced</span>
+
+                    <div class="app-choice-grid">
+                      <button class="app-choice compact is-selected" data-target-app="pulse" type="button">
+                        <div class="choice-leading">
+                          <span class="mini-icon icon-pulse small">
+                            <img class="mini-icon-image" src="../TikTok.png" alt="" />
+                          </span>
+                          <div>
+                            <strong>TikTok</strong>
+                            <p data-app-status>Protection on</p>
+                          </div>
+                        </div>
+                        <span class="toggle-indicator" aria-hidden="true"></span>
+                      </button>
+
+                      <button class="app-choice compact" data-target-app="instagram" type="button">
+                        <div class="choice-leading">
+                          <span class="mini-icon">
+                            <img class="mini-icon-image" src="../Instagram.png" alt="" />
+                          </span>
+                          <div>
+                            <strong>Instagram</strong>
+                            <p data-app-status>Protection off</p>
+                          </div>
+                        </div>
+                        <span class="toggle-indicator" aria-hidden="true"></span>
+                      </button>
+
+                      <button class="app-choice compact" data-target-app="youtube" type="button">
+                        <div class="choice-leading">
+                          <span class="mini-icon">
+                            <img class="mini-icon-image" src="../YouTube.png" alt="" />
+                          </span>
+                          <div>
+                            <strong>YouTube</strong>
+                            <p data-app-status>Protection off</p>
+                          </div>
+                        </div>
+                        <span class="toggle-indicator" aria-hidden="true"></span>
+                      </button>
+
+                      <button class="app-choice compact" data-target-app="snapchat" type="button">
+                        <div class="choice-leading">
+                          <span class="mini-icon">
+                            <img class="mini-icon-image" src="../Snapchat.png" alt="" />
+                          </span>
+                          <div>
+                            <strong>Snapchat</strong>
+                            <p data-app-status>Protection off</p>
+                          </div>
+                        </div>
+                        <span class="toggle-indicator" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                  </section>
+
+                  <section class="surface-card">
+                    <div class="section-head">
+                      <div>
+                        <p class="overline">Timing</p>
+                        <h3>Protection timing</h3>
                       </div>
-                      <span class="task-chevron" aria-hidden="true">&rsaquo;</span>
-                    </button>
-                    <div class="plan-chip-row" aria-label="Current plan">
-                      <span class="plan-chip">TikTok</span>
-                      <span class="plan-chip" id="taskGoalChip">Study break</span>
-                      <span class="plan-chip" id="taskStyleChip">Balanced</span>
+                      <span class="mini-badge">Adjustable</span>
                     </div>
+
                     <div class="timing-preset-row" aria-label="Timing presets">
                       <button class="timing-preset is-selected" data-plan-preset="quick" type="button">
                         <strong>Quick</strong>
@@ -177,153 +188,60 @@
                         <small>15 / 20 / 30</small>
                       </button>
                     </div>
-                    <div class="quick-timing-list">
-                      <div class="timing-row">
-                        <div class="timing-copy">
-                          <strong>Check-in</strong>
-                          <small>First pause</small>
-                        </div>
-                        <div class="timing-controls">
-                          <button class="timing-stepper" data-adjust-stage="2" data-adjust-direction="-1" type="button">-</button>
-                          <strong id="taskStage2Hint">5 min</strong>
-                          <button class="timing-stepper" data-adjust-stage="2" data-adjust-direction="1" type="button">+</button>
-                        </div>
-                      </div>
-                      <div class="timing-row">
-                        <div class="timing-copy">
-                          <strong>Soft friction</strong>
-                          <small>Feed softens</small>
-                        </div>
-                        <div class="timing-controls">
-                          <button class="timing-stepper" data-adjust-stage="3" data-adjust-direction="-1" type="button">-</button>
-                          <strong id="taskStage3Hint">10 min</strong>
-                          <button class="timing-stepper" data-adjust-stage="3" data-adjust-direction="1" type="button">+</button>
-                        </div>
-                      </div>
-                      <div class="timing-row">
-                        <div class="timing-copy">
-                          <strong>Choice</strong>
-                          <small>Intentional hold</small>
-                        </div>
-                        <div class="timing-controls">
-                          <button class="timing-stepper" data-adjust-stage="4" data-adjust-direction="-1" type="button">-</button>
-                          <strong id="taskStage4Hint">15 min</strong>
-                          <button class="timing-stepper" data-adjust-stage="4" data-adjust-direction="1" type="button">+</button>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
 
-                  <section class="surface-card">
-                    <div class="section-head">
-                      <div>
-                        <p class="overline">Preview</p>
-                        <h3>Intervention flow</h3>
-                      </div>
-                      <span class="mini-badge">Tap to open</span>
-                    </div>
-                    <div class="task-action-list">
-                      <button class="task-action-row" data-preview-stage="2" type="button">
-                        <div class="task-action-copy">
-                          <strong>Check-in</strong>
-                          <span>Reminder card</span>
+                    <div class="slider-group">
+                      <label class="slider-card" for="stage2Slider">
+                        <div class="slider-head">
+                          <div>
+                            <strong>Stage 2</strong>
+                            <p>Check-in reminder</p>
+                          </div>
+                          <span class="slider-value" id="stage2Value">5 min</span>
                         </div>
-                        <span class="task-action-tag" id="taskPreview2Hint">5 min</span>
-                      </button>
-                      <button class="task-action-row" data-preview-stage="3" type="button">
-                        <div class="task-action-copy">
-                          <strong>Soft friction</strong>
-                          <span>Softer feed</span>
+                        <input id="stage2Slider" class="threshold-slider" type="range" min="5" max="30" step="5" data-slider-stage="2" value="5" />
+                        <div class="slider-scale">
+                          <span>5 min</span>
+                          <span>30 min</span>
                         </div>
-                        <span class="task-action-tag" id="taskPreview3Hint">10 min</span>
-                      </button>
-                      <button class="task-action-row" data-preview-stage="4" type="button">
-                        <div class="task-action-copy">
-                          <strong>Choice</strong>
-                          <span>Choice screen</span>
-                        </div>
-                        <span class="task-action-tag" id="taskPreview4Hint">15 min</span>
-                      </button>
-                    </div>
-                  </section>
+                      </label>
 
-                  <section class="surface-card">
-                    <div class="section-head">
-                      <div>
-                        <p class="overline">Shortcuts</p>
-                        <h3>Plan and stats</h3>
-                      </div>
-                    </div>
-                    <div class="task-action-list">
-                      <button class="task-action-row" data-task-action="open-settings" type="button">
-                        <div class="task-action-copy">
-                          <strong>Edit protection</strong>
-                          <span>Goal, style, effects</span>
+                      <label class="slider-card" for="stage3Slider">
+                        <div class="slider-head">
+                          <div>
+                            <strong>Stage 3</strong>
+                            <p>Soft friction</p>
+                          </div>
+                          <span class="slider-value" id="stage3Value">10 min</span>
                         </div>
-                        <span class="task-action-tag">Settings</span>
-                      </button>
-                      <button class="task-action-row" data-task-action="open-stats" type="button">
-                        <div class="task-action-copy">
-                          <strong>Weekly stats</strong>
-                          <span>Saved time and stop rate</span>
+                        <input id="stage3Slider" class="threshold-slider" type="range" min="10" max="60" step="5" data-slider-stage="3" value="10" />
+                        <div class="slider-scale">
+                          <span>10 min</span>
+                          <span>60 min</span>
                         </div>
-                        <span class="task-action-tag">Stats</span>
-                      </button>
-                    </div>
-                  </section>
+                      </label>
 
-                </section>
-
-                <section class="gf-page" data-gf-view="settings">
-                  <section class="surface-card">
-                    <div class="section-head">
-                      <div>
-                        <p class="overline">Plan</p>
-                        <h3>Protection plan</h3>
-                      </div>
-                    </div>
-
-                    <button class="app-choice is-selected" data-target-app="pulse" type="button">
-                      <div class="choice-leading">
-                        <span class="mini-icon icon-pulse small">
-                          <img class="mini-icon-image" src="../TikTok.png" alt="" />
-                        </span>
-                        <div>
-                          <strong>TikTok</strong>
-                          <p>Short video</p>
+                      <label class="slider-card" for="stage4Slider">
+                        <div class="slider-head">
+                          <div>
+                            <strong>Stage 4</strong>
+                            <p>Choice moment</p>
+                          </div>
+                          <span class="slider-value" id="stage4Value">15 min</span>
                         </div>
-                      </div>
-                      <span class="toggle-indicator" aria-hidden="true"></span>
-                    </button>
-                    <div class="segmented-grid" aria-label="Current goal">
-                      <button class="segmented-option is-selected" data-goal="study" type="button">
-                        <strong>Study break</strong>
-                        <span>Back on track.</span>
-                      </button>
-                      <button class="segmented-option" data-goal="sleep" type="button">
-                        <strong>Sleep routine</strong>
-                        <span>Less night scroll.</span>
-                      </button>
-                      <button class="segmented-option" data-goal="focus" type="button">
-                        <strong>Focus session</strong>
-                        <span>Protect focus.</span>
-                      </button>
+                        <input id="stage4Slider" class="threshold-slider" type="range" min="15" max="90" step="5" data-slider-stage="4" value="15" />
+                        <div class="slider-scale">
+                          <span>15 min</span>
+                          <span>90 min</span>
+                        </div>
+                      </label>
                     </div>
-                    <div class="style-selector" aria-label="Intervention style">
-                      <button class="style-option" data-style="gentle" type="button">Gentle</button>
-                      <button class="style-option is-selected" data-style="balanced" type="button">Balanced</button>
-                      <button class="style-option" data-style="firm" type="button">Firm</button>
-                    </div>
-                    <p class="body-copy compact-copy">
-                      Balanced keeps support clear and light.
-                    </p>
                   </section>
 
                   <section class="surface-card">
                     <div class="section-head">
                       <div>
                         <p class="overline">Effects</p>
-                        <h3>Effects</h3>
+                        <h3>Friction effects</h3>
                       </div>
                       <span class="mini-badge" id="effectsCount">3</span>
                     </div>
@@ -332,164 +250,90 @@
                       <button class="effect-card is-selected" data-effect="blur" type="button">
                         <span class="effect-check" aria-hidden="true"></span>
                         <strong>Blur</strong>
-                        <p>Soften detail</p>
+                        <p>Reduce visual clarity</p>
                       </button>
 
                       <button class="effect-card is-selected" data-effect="fade" type="button">
                         <span class="effect-check" aria-hidden="true"></span>
                         <strong>Fade</strong>
-                        <p>Lower pull</p>
+                        <p>Lower visual reward</p>
                       </button>
 
                       <button class="effect-card is-selected" data-effect="tint" type="button">
                         <span class="effect-check" aria-hidden="true"></span>
                         <strong>Tint</strong>
-                        <p>Calm layer</p>
+                        <p>Add a calm overlay</p>
                       </button>
                     </div>
                   </section>
 
+                  <section class="surface-card preview-card">
+                    <div class="section-head">
+                      <div>
+                        <p class="overline">Preview</p>
+                        <h3>Stage 3 preview</h3>
+                      </div>
+                      <span class="mini-badge" id="previewStageValue">62%</span>
+                    </div>
+
+                    <div class="preview-frame" id="previewFrame">
+                      <video
+                        id="previewVideo"
+                        src="../video/v0200fg10000d6he63nog65qc0cab430.MP4"
+                        muted
+                        loop
+                        playsinline
+                        preload="metadata"
+                      ></video>
+                      <div class="preview-overlay"></div>
+                      <div class="preview-tint"></div>
+                      <div class="preview-caption">
+                        <p>@pulse.moment</p>
+                        <span>Your selected effects appear here before a stronger interruption.</span>
+                      </div>
+                    </div>
+                  </section>
                 </section>
 
                 <section class="gf-page" data-gf-view="insights">
                   <section class="surface-card insight-hero">
                     <div class="stats-hero-top">
                       <div>
-                        <p class="overline">This week</p>
-                        <h3>Protected time</h3>
-                        <strong class="stats-hero-value">3h 25m</strong>
-                        <p class="stats-hero-copy">22 check-ins helped you step out sooner.</p>
+                        <p class="overline">Usage log</p>
+                        <h3>Protection activity</h3>
+                        <strong class="stats-hero-value" id="statsSummarySessions">0 sessions</strong>
+                        <p class="stats-hero-copy" id="statsSummaryCopy">Start protection to record your first session.</p>
                       </div>
                       <div class="stats-hero-badge">
-                        <strong>61%</strong>
-                        <span>stop rate</span>
+                        <strong id="statsSummaryTime">0m</strong>
+                        <span>protected</span>
                       </div>
                     </div>
                     <div class="insight-grid">
                       <article class="insight-card">
-                        <span>Late-night stops</span>
-                        <strong>6</strong>
+                        <span>App opens</span>
+                        <strong id="statsOpenCount">0</strong>
                       </article>
                       <article class="insight-card">
-                        <span>Best day</span>
-                        <strong>Saturday</strong>
+                        <span>Protection starts</span>
+                        <strong id="statsStartCount">0</strong>
                       </article>
                       <article class="insight-card">
-                        <span>Top mode</span>
-                        <strong>Balanced</strong>
+                        <span>Pauses</span>
+                        <strong id="statsPauseCount">0</strong>
                       </article>
                     </div>
-                  </section>
-
-                  <section class="surface-card chart-card">
-                    <div class="section-head">
-                      <div>
-                        <p class="overline">Protected time</p>
-                        <h3>Past 7 days</h3>
-                      </div>
-                    </div>
-                    <div class="chart-bars" role="list" aria-label="Protected time by day">
-                      <button class="chart-bar" data-stats-day="0" style="--bar: 54%" type="button">
-                        <span class="chart-bar-track" aria-hidden="true">
-                          <span class="chart-bar-fill"></span>
-                        </span>
-                        <small>Mon</small>
-                      </button>
-                      <button class="chart-bar" data-stats-day="1" style="--bar: 62%" type="button">
-                        <span class="chart-bar-track" aria-hidden="true">
-                          <span class="chart-bar-fill"></span>
-                        </span>
-                        <small>Tue</small>
-                      </button>
-                      <button class="chart-bar" data-stats-day="2" style="--bar: 48%" type="button">
-                        <span class="chart-bar-track" aria-hidden="true">
-                          <span class="chart-bar-fill"></span>
-                        </span>
-                        <small>Wed</small>
-                      </button>
-                      <button class="chart-bar" data-stats-day="3" style="--bar: 74%" type="button">
-                        <span class="chart-bar-track" aria-hidden="true">
-                          <span class="chart-bar-fill"></span>
-                        </span>
-                        <small>Thu</small>
-                      </button>
-                      <button class="chart-bar" data-stats-day="4" style="--bar: 70%" type="button">
-                        <span class="chart-bar-track" aria-hidden="true">
-                          <span class="chart-bar-fill"></span>
-                        </span>
-                        <small>Fri</small>
-                      </button>
-                      <button class="chart-bar" data-stats-day="5" style="--bar: 81%" type="button">
-                        <span class="chart-bar-track" aria-hidden="true">
-                          <span class="chart-bar-fill"></span>
-                        </span>
-                        <small>Sat</small>
-                      </button>
-                      <button class="chart-bar" data-stats-day="6" style="--bar: 66%" type="button">
-                        <span class="chart-bar-track" aria-hidden="true">
-                          <span class="chart-bar-fill"></span>
-                        </span>
-                        <small>Sun</small>
-                      </button>
-                    </div>
-                    <section class="stats-detail-card" aria-live="polite">
-                      <div class="stats-detail-head">
-                        <div>
-                          <p class="stats-detail-day" id="statsDetailDay">Thursday</p>
-                          <strong id="statsDetailTitle">34 min protected</strong>
-                        </div>
-                        <span class="mini-badge" id="statsDetailBadge">Best day</span>
-                      </div>
-                      <div class="stats-detail-grid">
-                        <article>
-                          <span>Stops</span>
-                          <strong id="statsDetailStops">4</strong>
-                        </article>
-                        <article>
-                          <span>Return rate</span>
-                          <strong id="statsDetailRate">68%</strong>
-                        </article>
-                        <article>
-                          <span>Mode</span>
-                          <strong id="statsDetailMode">Balanced</strong>
-                        </article>
-                      </div>
-                    </section>
                   </section>
 
                   <section class="surface-card">
                     <div class="section-head">
                       <div>
-                        <p class="overline">Selected day</p>
-                        <h3>Support moments</h3>
+                        <p class="overline">Sessions</p>
+                        <h3>Recent activity</h3>
                       </div>
-                      <span class="mini-badge" id="statsMomentsBadge">3 moments</span>
+                      <span class="mini-badge" id="statsSessionsBadge">No records</span>
                     </div>
-                    <div class="moment-list" id="statsMomentList"></div>
-                  </section>
-
-                  <section class="surface-card">
-                    <div class="section-head">
-                      <div>
-                        <p class="overline">Patterns</p>
-                        <h3>What helped most</h3>
-                      </div>
-                      <span class="mini-badge">This week</span>
-                    </div>
-                    <div class="evaluation-grid">
-                      <article>
-                        <strong>Sleep routine</strong>
-                        <span>Highest stop rate after 22:00.</span>
-                      </article>
-                      <article>
-                        <strong>Balanced mode</strong>
-                        <span>Used in most successful exits.</span>
-                      </article>
-                      <article>
-                        <strong>Check-ins</strong>
-                        <span>Most breaks happened within 40s.</span>
-                      </article>
-                    </div>
+                    <div class="moment-list" id="statsSessionList"></div>
                   </section>
                 </section>
               </div>
@@ -516,10 +360,6 @@
                 <button class="tabbar-item is-active" data-gf-page="overview" type="button">
                   <span class="tabbar-icon icon-home"></span>
                   <span>Home</span>
-                </button>
-                <button class="tabbar-item" data-gf-page="tasks" type="button">
-                  <span class="tabbar-icon icon-tasks"></span>
-                  <span>Protect</span>
                 </button>
                 <button class="tabbar-item" data-gf-page="settings" type="button">
                   <span class="tabbar-icon icon-settings"></span>
@@ -600,6 +440,6 @@
       </section>
     </main>
 
-    <script src="./script.js?v=ux-fix-14"></script>
+    <script src="./script.js?v=product-settings-3"></script>
   </body>
 </html>
