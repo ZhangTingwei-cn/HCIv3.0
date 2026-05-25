@@ -16,7 +16,7 @@ const FEED_ITEMS = [
   }
 ];
 
-const HOLD_DURATION_STAGE_4 = 1800;
+const HOLD_DURATION_STAGE_4 = 10500;
 const REMINDER_DISMISS_THRESHOLD = 90;
 const REMINDER_AUTO_HIDE_MS = 5000;
 const VIDEO_SWIPE_THRESHOLD = 56;
@@ -531,7 +531,7 @@ function syncUsageStats() {
 
   if (startProtectionButton) {
     if (!hasEnabledApps()) {
-      startProtectionButton.textContent = "Select an app";
+      startProtectionButton.textContent = "Start protection";
     } else if (state.protectionRunning) {
       startProtectionButton.textContent = "Stop protection";
     } else {
@@ -1072,7 +1072,7 @@ function syncInterventionSheet() {
 
   interventionSheet.classList.remove("hidden");
   interventionTitle.textContent = "Keep scrolling?";
-  interventionText.textContent = "Hold to stay. Let go to stop.";
+  interventionText.textContent = "Hold 10s+ to stay. Let go to stop.";
   renderEffectBadges();
 }
 
