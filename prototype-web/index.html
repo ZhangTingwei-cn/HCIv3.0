@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f8f5ef" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Gentle Friction" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Gentle Friction</title>
+    <link rel="manifest" href="../manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="../Logo.png" />
+    <link rel="stylesheet" href="./style.css?v=ux-fix-13" />
+  </head>
+  <body>
+    <main class="stage">
+      <section class="phone-shell" aria-label="Gentle Friction prototype">
+        <div class="phone-body">
+          <div class="screen">
+            <section class="view view-home is-active" data-view="home">
+              <div class="wallpaper wallpaper-a"></div>
+              <div class="wallpaper wallpaper-b"></div>
+              <div class="wallpaper wallpaper-c"></div>
+
+              <div class="home-hero">
+                <p>Thursday</p>
+                <strong>22 May</strong>
+              </div>
+
+              <div class="home-grid home-grid-minimal">
+                <button class="home-app home-app-large clickable" data-open-app="gentle" type="button">
+                  <span class="home-icon home-icon-large icon-gentle-home">
+                    <img class="app-icon-image logo-image-tight" src="../Logo.png" alt="" />
+                  </span>
+                  <p>Gentle Friction</p>
+                </button>
+
+                <button class="home-app home-app-large clickable" data-open-app="pulse" type="button">
+                  <span class="home-icon home-icon-large icon-pulse-home">
+                    <img class="app-icon-image" src="../TikTok.png" alt="" />
+                  </span>
+                  <p>TikTok</p>
+                </button>
+              </div>
+
+              <div class="home-search">Search</div>
+
+              <div class="dock">
+                <div class="dock-pill">
+                  <span class="dock-app phone"></span>
+                  <span class="dock-app safari"></span>
+                  <span class="dock-app message"></span>
+                  <span class="dock-app settings"></span>
+                </div>
+              </div>
+            </section>
+
+            <section class="view view-gentle" data-view="gentle">
+              <header class="gentle-header">
+                <button class="chrome-back" data-go-home type="button" aria-label="Back to home">&lsaquo;</button>
+                <div class="header-emblem">
+                  <img class="logo-image-tight" src="../Logo.png" alt="" />
+                </div>
+              </header>
+
+              <div class="app-scroll">
+                <section class="gf-page is-active" data-gf-view="overview">
+                  <section class="brand-stage">
+                    <div class="brand-stage-glow"></div>
+                    <div class="brand-aura brand-aura-large"></div>
+                    <div class="brand-aura brand-aura-small"></div>
+                    <div class="brand-visual">
+                      <div class="brand-sun"></div>
+                      <img class="brand-hero-image logo-image-tight" src="../Logo.png" alt="Gentle Friction logo" />
+                    </div>
+                    <h2 class="brand-title">Gentle Friction</h2>
+                    <p class="brand-subtitle">A self-regulation layer for short-video overuse</p>
+                    <section class="status-strip" aria-label="Protection status">
+                      <article class="status-chip">
+                        <span>Status</span>
+                        <strong>On</strong>
+                      </article>
+                      <article class="status-chip">
+                        <span>Next cue</span>
+                        <strong id="homeNextCueValue">5 min</strong>
+                      </article>
+                      <article class="status-chip">
+                        <span>Mode</span>
+                        <strong id="homeStyleValue">Balanced</strong>
+                      </article>
+                    </section>
+                    <section class="focus-summary" aria-label="Active protection summary">
+                      <button class="summary-card" data-task-action="start-protected" type="button">
+                        <span>Protected app</span>
+                        <strong>TikTok</strong>
+                      </button>
+                      <button class="summary-card" data-task-action="open-settings" type="button">
+                        <span>Current goal</span>
+                        <strong id="overviewGoalLabel">Study break</strong>
+                      </button>
+                    </section>
+
+                    <section class="stage-flow" aria-label="Intervention flow">
+                      <button class="stage-preview-card" data-preview-stage="2" type="button">
+                        <span>1</span>
+                        <strong>Awareness</strong>
+                        <p>Bring time back into view.</p>
+                      </button>
+                      <button class="stage-preview-card" data-preview-stage="3" type="button">
+                        <span>2</span>
+                        <strong>Soft friction</strong>
+                        <p>Reduce visual reward gently.</p>
+                      </button>
+                      <button class="stage-preview-card" data-preview-stage="4" type="button">
+                        <span>3</span>
+                        <strong>Choice</strong>
+                        <p>Ask for an intentional decision.</p>
+                      </button>
+                    </section>
+
+                    <div class="overview-actions">
+                      <button class="primary-button home-primary-action" data-task-action="start-protected" type="button">
+                        Start protection
+                      </button>
+                      <button class="secondary-button home-secondary-action" data-task-action="open-settings" type="button">
+                        <strong>Edit plan</strong>
+                        <small>Goal and style</small>
+                      </button>
+                    </div>
+
+                    <button class="life-card" data-task-action="open-stats" type="button">
+                      <span class="life-card-icon">
+                        <img class="logo-image-tight" src="../Logo.png" alt="" />
+                      </span>
+                      <span class="life-card-divider" aria-hidden="true"></span>
+                      <span class="life-card-copy">
+                        <strong>23 <span>pauses</span></strong>
+                        <small>back to study</small>
+                      </span>
+                      <span class="life-card-arrow" aria-hidden="true">&rsaquo;</span>
+                    </button>
+                  </section>
+                </section>
+
+                <section class="gf-page" data-gf-view="tasks">
+                  <section class="surface-card">
+                    <div class="section-head">
+                      <div>
+                        <p class="overline">Today</p>
+                        <h3>Active plan</h3>
+                      </div>
+                      <span class="mini-badge">Ready</span>
+                    </div>
+                    <button class="task-launch" data-task-action="start-protected" type="button">
+                      <div class="task-launch-copy">
+                        <strong>Protected TikTok</strong>
+                        <span id="taskLaunchMeta">Study break · Balanced</span>
+                      </div>
+                      <span class="task-chevron" aria-hidden="true">&rsaquo;</span>
+                    </button>
+                    <div class="plan-chip-row" aria-label="Current plan">
+                      <span class="plan-chip">TikTok</span>
+                      <span class="plan-chip" id="taskGoalChip">Study break</span>
+                      <span class="plan-chip" id="taskStyleChip">Balanced</span>
+                    </div>
+                    <div class="timing-preset-row" aria-label="Timing presets">
+                      <button class="timing-preset is-selected" data-plan-preset="quick" type="button">
+                        <strong>Quick</strong>
+                        <small>5 / 10 / 15</small>
+                      </button>
+                      <button class="timing-preset" data-plan-preset="standard" type="button">
+                        <strong>Standard</strong>
+                        <small>10 / 15 / 20</small>
+                      </button>
+                      <button class="timing-preset" data-plan-preset="long" type="button">
+                        <strong>Long</strong>
+                        <small>15 / 20 / 30</small>
+                      </button>
+                    </div>
+                    <div class="quick-timing-list">
+                      <div class="timing-row">
+                        <div class="timing-copy">
+                          <strong>Check-in</strong>
+                          <small>First pause</small>
+                        </div>
+                        <div class="timing-controls">
+                          <button class="timing-stepper" data-adjust-stage="2" data-adjust-direction="-1" type="button">-</button>
+                          <strong id="taskStage2Hint">5 min</strong>
+                          <button class="timing-stepper" data-adjust-stage="2" data-adjust-direction="1" type="button">+</button>
+                        </div>
+                      </div>
+                      <div class="timing-row">
+                        <div class="timing-copy">
+                          <strong>Soft friction</strong>
+                          <small>Feed softens</small>
+                        </div>
+                        <div class="timing-controls">
+                          <button class="timing-stepper" data-adjust-stage="3" data-adjust-direction="-1" type="button">-</button>
+                          <strong id="taskStage3Hint">10 min</strong>
+                          <button class="timing-stepper" data-adjust-stage="3" data-adjust-direction="1" type="button">+</button>
+                        </div>
+                      </div>
+                      <div class="timing-row">
+                        <div class="timing-copy">
+                          <strong>Choice</strong>
+                          <small>Intentional hold</small>
+                        </div>
+                        <div class="timing-controls">
+                          <button class="timing-stepper" data-adjust-stage="4" data-adjust-direction="-1" type="button">-</button>
+                          <strong id="taskStage4Hint">15 min</strong>
+                          <button class="timing-stepper" data-adjust-stage="4" data-adjust-direction="1" type="button">+</button>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="surface-card">
+                    <div class="section-head">
+                      <div>
+                        <p class="overline">Preview</p>
+                        <h3>Intervention flow</h3>
+                      </div>
+                      <span class="mini-badge">Tap to open</span>
+                    </div>
+                    <div class="task-action-list">
+                      <button class="task-action-row" data-preview-stage="2" type="button">
+                        <div class="task-action-copy">
+                          <strong>Check-in</strong>
+                          <span>Reminder card</span>
+                        </div>
+                        <span class="task-action-tag" id="taskPreview2Hint">5 min</span>
+                      </button>
+                      <button class="task-action-row" data-preview-stage="3" type="button">
+                        <div class="task-action-copy">
+                          <strong>Soft friction</strong>
+                          <span>Softer feed</span>
+                        </div>
+                        <span class="task-action-tag" id="taskPreview3Hint">10 min</span>
+                      </button>
+                      <button class="task-action-row" data-preview-stage="4" type="button">
+                        <div class="task-action-copy">
+                          <strong>Choice</strong>
+                          <span>Choice screen</span>
+                        </div>
+                        <span class="task-action-tag" id="taskPreview4Hint">15 min</span>
+                      </button>
+                    </div>
+                  </section>
+
+                  <section class="surface-card">
+                    <div class="section-head">
+                      <div>
+                        <p class="overline">Shortcuts</p>
+                        <h3>Plan and stats</h3>
+                      </div>
+                    </div>
+                    <div class="task-action-list">
+                      <button class="task-action-row" data-task-action="open-settings" type="button">
+                        <div class="task-action-copy">
+                          <strong>Edit protection</strong>
+                          <span>Goal, style, effects</span>
+                        </div>
+                        <span class="task-action-tag">Settings</span>
+                      </button>
+                      <button class="task-action-row" data-task-action="open-stats" type="button">
+                        <div class="task-action-copy">
+                          <strong>Weekly stats</strong>
+                          <span>Saved time and stop rate</span>
+                        </div>
+                        <span class="task-action-tag">Stats</span>
+                      </button>
+                    </div>
+                  </section>
+
+                </section>
+
+                <section class="gf-page" data-gf-view="settings">
+                  <section class="surface-card">
+                    <div class="section-head">
+                      <div>
+                        <p class="overline">Plan</p>
+                        <h3>Protection plan</h3>
+                      </div>
+                    </div>
+
+                    <button class="app-choice is-selected" data-target-app="pulse" type="button">
+                      <div class="choice-leading">
+                        <span class="mini-icon icon-pulse small">
+                          <img class="mini-icon-image" src="../TikTok.png" alt="" />
+                        </span>
+                        <div>
+                          <strong>TikTok</strong>
+                          <p>Short video</p>
+                        </div>
+                      </div>
+                      <span class="toggle-indicator" aria-hidden="true"></span>
+                    </button>
+                    <div class="segmented-grid" aria-label="Current goal">
+                      <button class="segmented-option is-selected" data-goal="study" type="button">
+                        <strong>Study break</strong>
+                        <span>Back on track.</span>
+                      </button>
+                      <button class="segmented-option" data-goal="sleep" type="button">
+                        <strong>Sleep routine</strong>
+                        <span>Less night scroll.</span>
+                      </button>
+                      <button class="segmented-option" data-goal="focus" type="button">
+                        <strong>Focus session</strong>
+                        <span>Protect focus.</span>
+                      </button>
+                    </div>
+                    <div class="style-selector" aria-label="Intervention style">
+                      <button class="style-option" data-style="gentle" type="button">Gentle</button>
+                      <button class="style-option is-selected" data-style="balanced" type="button">Balanced</button>
+                      <button class="style-option" data-style="firm" type="button">Firm</button>
+                    </div>
+                    <p class="body-copy compact-copy">
+                      Balanced keeps support clear and light.
+                    </p>
+                  </section>
+
+                  <section class="surface-card">
+                    <div class="section-head">
+                      <div>
+                        <p class="overline">Effects</p>
+                        <h3>Effects</h3>
+                      </div>
+                      <span class="mini-badge" id="effectsCount">3</span>
+                    </div>
+
+                    <div class="effect-grid">
+                      <button class="effect-card is-selected" data-effect="blur" type="button">
+                        <span class="effect-check" aria-hidden="true"></span>
+                        <strong>Blur</strong>
+                        <p>Soften detail</p>
+                      </button>
+
+                      <button class="effect-card is-selected" data-effect="fade" type="button">
+                        <span class="effect-check" aria-hidden="true"></span>
+                        <strong>Fade</strong>
+                        <p>Lower pull</p>
+                      </button>
+
+                      <button class="effect-card is-selected" data-effect="tint" type="button">
+                        <span class="effect-check" aria-hidden="true"></span>
+                        <strong>Tint</strong>
+                        <p>Calm layer</p>
+                      </button>
+                    </div>
+                  </section>
+
+                </section>
+
+                <section class="gf-page" data-gf-view="insights">
+                  <section class="surface-card insight-hero">
+                    <div class="stats-hero-top">
+                      <div>
+                        <p class="overline">This week</p>
+                        <h3>Protected time</h3>
+                        <strong class="stats-hero-value">3h 25m</strong>
+                        <p class="stats-hero-copy">22 check-ins helped you step out sooner.</p>
+                      </div>
+                      <div class="stats-hero-badge">
+                        <strong>61%</strong>
+                        <span>stop rate</span>
+                      </div>
+                    </div>
+                    <div class="insight-grid">
+                      <article class="insight-card">
+                        <span>Late-night stops</span>
+                        <strong>6</strong>
+                      </article>
+                      <article class="insight-card">
+                        <span>Best day</span>
+                        <strong>Saturday</strong>
+                      </article>
+                      <article class="insight-card">
+                        <span>Top mode</span>
+                        <strong>Balanced</strong>
+                      </article>
+                    </div>
+                  </section>
+
+                  <section class="surface-card chart-card">
+                    <div class="section-head">
+                      <div>
+                        <p class="overline">Protected time</p>
+                        <h3>Past 7 days</h3>
+                      </div>
+                    </div>
+                    <div class="chart-bars" role="list" aria-label="Protected time by day">
+                      <button class="chart-bar" data-stats-day="0" style="--bar: 54%" type="button">
+                        <span class="chart-bar-track" aria-hidden="true">
+                          <span class="chart-bar-fill"></span>
+                        </span>
+                        <small>Mon</small>
+                      </button>
+                      <button class="chart-bar" data-stats-day="1" style="--bar: 62%" type="button">
+                        <span class="chart-bar-track" aria-hidden="true">
+                          <span class="chart-bar-fill"></span>
+                        </span>
+                        <small>Tue</small>
+                      </button>
+                      <button class="chart-bar" data-stats-day="2" style="--bar: 48%" type="button">
+                        <span class="chart-bar-track" aria-hidden="true">
+                          <span class="chart-bar-fill"></span>
+                        </span>
+                        <small>Wed</small>
+                      </button>
+                      <button class="chart-bar" data-stats-day="3" style="--bar: 74%" type="button">
+                        <span class="chart-bar-track" aria-hidden="true">
+                          <span class="chart-bar-fill"></span>
+                        </span>
+                        <small>Thu</small>
+                      </button>
+                      <button class="chart-bar" data-stats-day="4" style="--bar: 70%" type="button">
+                        <span class="chart-bar-track" aria-hidden="true">
+                          <span class="chart-bar-fill"></span>
+                        </span>
+                        <small>Fri</small>
+                      </button>
+                      <button class="chart-bar" data-stats-day="5" style="--bar: 81%" type="button">
+                        <span class="chart-bar-track" aria-hidden="true">
+                          <span class="chart-bar-fill"></span>
+                        </span>
+                        <small>Sat</small>
+                      </button>
+                      <button class="chart-bar" data-stats-day="6" style="--bar: 66%" type="button">
+                        <span class="chart-bar-track" aria-hidden="true">
+                          <span class="chart-bar-fill"></span>
+                        </span>
+                        <small>Sun</small>
+                      </button>
+                    </div>
+                    <section class="stats-detail-card" aria-live="polite">
+                      <div class="stats-detail-head">
+                        <div>
+                          <p class="stats-detail-day" id="statsDetailDay">Thursday</p>
+                          <strong id="statsDetailTitle">34 min protected</strong>
+                        </div>
+                        <span class="mini-badge" id="statsDetailBadge">Best day</span>
+                      </div>
+                      <div class="stats-detail-grid">
+                        <article>
+                          <span>Stops</span>
+                          <strong id="statsDetailStops">4</strong>
+                        </article>
+                        <article>
+                          <span>Return rate</span>
+                          <strong id="statsDetailRate">68%</strong>
+                        </article>
+                        <article>
+                          <span>Mode</span>
+                          <strong id="statsDetailMode">Balanced</strong>
+                        </article>
+                      </div>
+                    </section>
+                  </section>
+
+                  <section class="surface-card">
+                    <div class="section-head">
+                      <div>
+                        <p class="overline">Selected day</p>
+                        <h3>Support moments</h3>
+                      </div>
+                      <span class="mini-badge" id="statsMomentsBadge">3 moments</span>
+                    </div>
+                    <div class="moment-list" id="statsMomentList"></div>
+                  </section>
+
+                  <section class="surface-card">
+                    <div class="section-head">
+                      <div>
+                        <p class="overline">Patterns</p>
+                        <h3>What helped most</h3>
+                      </div>
+                      <span class="mini-badge">This week</span>
+                    </div>
+                    <div class="evaluation-grid">
+                      <article>
+                        <strong>Sleep routine</strong>
+                        <span>Highest stop rate after 22:00.</span>
+                      </article>
+                      <article>
+                        <strong>Balanced mode</strong>
+                        <span>Used in most successful exits.</span>
+                      </article>
+                      <article>
+                        <strong>Check-ins</strong>
+                        <span>Most breaks happened within 40s.</span>
+                      </article>
+                    </div>
+                  </section>
+                </section>
+              </div>
+
+              <section class="onboarding-panel" id="onboardingPanel" aria-label="Gentle Friction introduction">
+                <div class="onboarding-card">
+                  <p class="overline">First run</p>
+                  <h2>Stay on track</h2>
+                  <p>
+                    Notice overuse early and step out sooner.
+                  </p>
+                  <div class="onboarding-steps">
+                    <article><strong>Awareness</strong><span>Show time.</span></article>
+                    <article><strong>Friction</strong><span>Soften pull.</span></article>
+                    <article><strong>Choice</strong><span>Stay in control.</span></article>
+                  </div>
+                  <button class="primary-button onboarding-action" id="startSetupButton" type="button">
+                    Start setup
+                  </button>
+                </div>
+              </section>
+
+              <nav class="tabbar" role="tablist" aria-label="gentle friction pages">
+                <button class="tabbar-item is-active" data-gf-page="overview" type="button">
+                  <span class="tabbar-icon icon-home"></span>
+                  <span>Home</span>
+                </button>
+                <button class="tabbar-item" data-gf-page="tasks" type="button">
+                  <span class="tabbar-icon icon-tasks"></span>
+                  <span>Protect</span>
+                </button>
+                <button class="tabbar-item" data-gf-page="settings" type="button">
+                  <span class="tabbar-icon icon-settings"></span>
+                  <span>Settings</span>
+                </button>
+                <button class="tabbar-item" data-gf-page="insights" type="button">
+                  <span class="tabbar-icon icon-stats"></span>
+                  <span>Stats</span>
+                </button>
+              </nav>
+            </section>
+
+            <section class="view view-pulse" data-view="pulse">
+              <div class="feed-viewport" id="feedViewport">
+                <div class="feed-track" id="feedTrack"></div>
+              </div>
+
+              <div class="tint-overlay"></div>
+
+              <header class="feed-topbar">
+                <button class="feed-pill" data-go-home type="button">Home</button>
+                <div class="feed-tabs">
+                  <span>Following</span>
+                  <strong>For You</strong>
+                </div>
+                <div class="feed-topbar-actions">
+                  <span class="feed-pill" id="stagePill">Protection on</span>
+                  <button class="feed-pill subtle demo-only" id="nextStageButton" type="button">Advance</button>
+                </div>
+              </header>
+
+              <section class="reminder-card hidden" id="reminderCard">
+                <div class="sheet-handle"></div>
+                <h3>Gentle Friction</h3>
+                <p id="reminderText">Still scrolling.</p>
+              </section>
+
+              <div class="feed-ui">
+                <div class="feed-meta-stack">
+                  <div class="floating-stack">
+                    <span class="floating-pill demo-only" id="demoTimer">00:00</span>
+                  </div>
+                  <p class="stage-message hidden" id="stageMessage">Monitoring quietly.</p>
+                </div>
+
+                <div class="side-actions" aria-hidden="true">
+                  <span class="side-action">2.4k</span>
+                  <span class="side-action">318</span>
+                  <span class="side-action">Share</span>
+                </div>
+              </div>
+
+              <section class="interrupt-overlay hidden" id="interventionSheet">
+                <div class="interrupt-panel">
+                  <p class="interrupt-kicker">Stage 4</p>
+                  <h3 id="interventionTitle">Keep scrolling?</h3>
+                  <p id="interventionText">Hold to stay. Let go to stop.</p>
+                  <div class="selected-effects" id="selectedEffects"></div>
+                  <button class="break-button" id="takeBreakButton" type="button">
+                    Take break
+                  </button>
+                  <button class="primary-button" id="continueButton" type="button">
+                    Hold to stay
+                  </button>
+                  <div class="hold-meter">
+                    <span id="holdProgress"></span>
+                  </div>
+                  <button class="secondary-button" id="returnHomeButton" type="button">
+                    Close TikTok
+                  </button>
+                </div>
+              </section>
+            </section>
+
+            <div class="home-indicator" aria-hidden="true"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./script.js?v=ux-fix-13"></script>
+  </body>
+</html>

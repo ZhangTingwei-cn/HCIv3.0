@@ -1,0 +1,1197 @@
+const FEED_ITEMS = [
+  {
+    file: "../video/v0200fg10000d6he63nog65qc0cab430.MP4",
+    author: "@pulse.moment",
+    caption: "One more swipe often becomes one more hour."
+  },
+  {
+    file: "../video/v0200fg10000d7rhrlfog65q2tugdel0.MP4",
+    author: "@daily.loop",
+    caption: "The smoother the feed, the easier it is to lose time."
+  },
+  {
+    file: "../video/v0200fg10000d83g6u7og65o63m4mbv0.MP4",
+    author: "@night.archive",
+    caption: "Gentle Friction steps in before scrolling takes over."
+  }
+];
+
+const HOLD_DURATION_STAGE_4 = 1800;
+const REMINDER_DISMISS_THRESHOLD = 90;
+const REMINDER_AUTO_HIDE_MS = 5000;
+const VIDEO_SWIPE_THRESHOLD = 56;
+const DEMO_MODE = new URLSearchParams(window.location.search).has("demo");
+const PLAN_PRESETS = {
+  quick: { 2: 5, 3: 10, 4: 15 },
+  standard: { 2: 10, 3: 15, 4: 20 },
+  long: { 2: 15, 3: 20, 4: 30 }
+};
+const STATS_DAYS = [
+  {
+    label: "Mon",
+    fullLabel: "Monday",
+    protectedMinutes: 24,
+    stops: 2,
+    returnRate: 52,
+    mode: "Gentle",
+    badge: "Steady",
+    moments: [
+      { time: "12:18", stage: "Check-in", result: "Closed after the first reminder." },
+      { time: "17:42", stage: "Soft friction", result: "Left after the feed softened." },
+      { time: "22:05", stage: "Choice", result: "Held to stay, then exited." }
+    ]
+  },
+  {
+    label: "Tue",
+    fullLabel: "Tuesday",
+    protectedMinutes: 28,
+    stops: 3,
+    returnRate: 58,
+    mode: "Balanced",
+    badge: "Growing",
+    moments: [
+      { time: "10:36", stage: "Check-in", result: "Paused between classes." },
+      { time: "18:21", stage: "Soft friction", result: "Stopped after two blurred clips." },
+      { time: "23:11", stage: "Choice", result: "Exited before sleep." }
+    ]
+  },
+  {
+    label: "Wed",
+    fullLabel: "Wednesday",
+    protectedMinutes: 21,
+    stops: 2,
+    returnRate: 49,
+    mode: "Gentle",
+    badge: "Light day",
+    moments: [
+      { time: "13:02", stage: "Check-in", result: "Returned to work after lunch." },
+      { time: "21:48", stage: "Soft friction", result: "Stopped without opening more clips." },
+      { time: "22:32", stage: "Choice", result: "Stayed briefly, then closed TikTok." }
+    ]
+  },
+  {
+    label: "Thu",
+    fullLabel: "Thursday",
+    protectedMinutes: 34,
+    stops: 4,
+    returnRate: 68,
+    mode: "Balanced",
+    badge: "Best day",
+    moments: [
+      { time: "09:44", stage: "Check-in", result: "Re-focused before class." },
+      { time: "16:25", stage: "Soft friction", result: "Exited after the feed softened." },
+      { time: "22:14", stage: "Choice", result: "Chose a break and put the phone down." }
+    ]
+  },
+  {
+    label: "Fri",
+    fullLabel: "Friday",
+    protectedMinutes: 31,
+    stops: 3,
+    returnRate: 64,
+    mode: "Balanced",
+    badge: "Consistent",
+    moments: [
+      { time: "11:58", stage: "Check-in", result: "Stopped during a short break." },
+      { time: "19:07", stage: "Soft friction", result: "Left after muted color feedback." },
+      { time: "23:02", stage: "Choice", result: "Held to stay, then closed." }
+    ]
+  },
+  {
+    label: "Sat",
+    fullLabel: "Saturday",
+    protectedMinutes: 38,
+    stops: 5,
+    returnRate: 72,
+    mode: "Firm",
+    badge: "Strong reset",
+    moments: [
+      { time: "14:20", stage: "Check-in", result: "Stepped out after a quick notice." },
+      { time: "20:46", stage: "Soft friction", result: "Stopped after reduced visual pull." },
+      { time: "23:18", stage: "Choice", result: "Exited at the hold screen." }
+    ]
+  },
+  {
+    label: "Sun",
+    fullLabel: "Sunday",
+    protectedMinutes: 29,
+    stops: 3,
+    returnRate: 61,
+    mode: "Balanced",
+    badge: "Stable",
+    moments: [
+      { time: "15:16", stage: "Check-in", result: "Back to reading after one pause." },
+      { time: "18:39", stage: "Soft friction", result: "Stopped after the second softened clip." },
+      { time: "21:57", stage: "Choice", result: "Ended the session before bed." }
+    ]
+  }
+];
+
+const state = {
+  activeView: "home",
+  gentlePage: "overview",
+  monitoredPulse: true,
+  onboardingSeen: true,
+  goal: "study",
+  interventionStyle: "balanced",
+  thresholds: { 2: 5, 3: 10, 4: 15 },
+  effects: new Set(["blur", "fade", "tint"]),
+  elapsedSeconds: 0,
+  currentVideoIndex: FEED_ITEMS.length,
+  currentStage: 1,
+  stage3Progress: 0,
+  holdStart: 0,
+  holdFrame: 0,
+  stage2Dismissed: false,
+  reminderDragStartY: null,
+  reminderOffsetY: 0,
+  reminderTimeout: 0,
+  trackDragStartY: null,
+  trackDragDeltaY: 0,
+  trackAnimating: false,
+  elapsedCarryMs: 0,
+  lastLoopAt: performance.now(),
+  previewProgress: 0,
+  previewDirection: 1,
+  selectedStatsDay: 3
+};
+
+const statusTime = document.getElementById("statusTime");
+const screen = document.querySelector(".screen");
+const appScroll = document.querySelector(".app-scroll");
+const views = [...document.querySelectorAll(".view")];
+const openButtons = [...document.querySelectorAll("[data-open-app]")];
+const homeButtons = [...document.querySelectorAll("[data-go-home]")];
+const gfPageButtons = [...document.querySelectorAll("[data-gf-page]")];
+const gfQuickLinks = [...document.querySelectorAll("[data-gf-page-target]")];
+const taskActionButtons = [...document.querySelectorAll("[data-task-action]")];
+const previewStageButtons = [...document.querySelectorAll("[data-preview-stage]")];
+const gfPages = [...document.querySelectorAll("[data-gf-view]")];
+const goalButtons = [...document.querySelectorAll("[data-goal]")];
+const styleButtons = [...document.querySelectorAll("[data-style]")];
+const presetButtons = [...document.querySelectorAll("[data-plan-preset]")];
+const targetAppButton = document.querySelector("[data-target-app='pulse']");
+const thresholdSliders = [...document.querySelectorAll("[data-slider-stage]")];
+const adjustStageButtons = [...document.querySelectorAll("[data-adjust-stage]")];
+const effectButtons = [...document.querySelectorAll("[data-effect]")];
+const effectsCount = document.getElementById("effectsCount");
+const onboardingPanel = document.getElementById("onboardingPanel");
+const startSetupButton = document.getElementById("startSetupButton");
+const stage2Value = document.getElementById("stage2Value");
+const stage3Value = document.getElementById("stage3Value");
+const stage4Value = document.getElementById("stage4Value");
+const previewStageValue = document.getElementById("previewStageValue");
+const previewFrame = document.getElementById("previewFrame");
+const previewVideo = document.getElementById("previewVideo");
+const overviewGoalLabel = document.getElementById("overviewGoalLabel");
+const homeNextCueValue = document.getElementById("homeNextCueValue");
+const homeStyleValue = document.getElementById("homeStyleValue");
+const taskLaunchMeta = document.getElementById("taskLaunchMeta");
+const taskGoalChip = document.getElementById("taskGoalChip");
+const taskStyleChip = document.getElementById("taskStyleChip");
+const taskStage2Hint = document.getElementById("taskStage2Hint");
+const taskStage3Hint = document.getElementById("taskStage3Hint");
+const taskStage4Hint = document.getElementById("taskStage4Hint");
+const taskPreview2Hint = document.getElementById("taskPreview2Hint");
+const taskPreview3Hint = document.getElementById("taskPreview3Hint");
+const taskPreview4Hint = document.getElementById("taskPreview4Hint");
+const statsDayButtons = [...document.querySelectorAll("[data-stats-day]")];
+const statsDetailDay = document.getElementById("statsDetailDay");
+const statsDetailTitle = document.getElementById("statsDetailTitle");
+const statsDetailBadge = document.getElementById("statsDetailBadge");
+const statsDetailStops = document.getElementById("statsDetailStops");
+const statsDetailRate = document.getElementById("statsDetailRate");
+const statsDetailMode = document.getElementById("statsDetailMode");
+const statsMomentList = document.getElementById("statsMomentList");
+const statsMomentsBadge = document.getElementById("statsMomentsBadge");
+const demoTimer = document.getElementById("demoTimer");
+const stagePill = document.getElementById("stagePill");
+const stageMessage = document.getElementById("stageMessage");
+const nextStageButton = document.getElementById("nextStageButton");
+const reminderCard = document.getElementById("reminderCard");
+const reminderText = document.getElementById("reminderText");
+const interventionSheet = document.getElementById("interventionSheet");
+const interventionTitle = document.getElementById("interventionTitle");
+const interventionText = document.getElementById("interventionText");
+const selectedEffects = document.getElementById("selectedEffects");
+const continueButton = document.getElementById("continueButton");
+const takeBreakButton = document.getElementById("takeBreakButton");
+const holdProgress = document.getElementById("holdProgress");
+const returnHomeButton = document.getElementById("returnHomeButton");
+const pulseView = document.querySelector("[data-view='pulse']");
+const feedViewport = document.getElementById("feedViewport");
+const feedTrack = document.getElementById("feedTrack");
+
+function formatClock(date) {
+  const hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+function updateStatusTime() {
+  if (!statusTime) {
+    return;
+  }
+
+  const now = new Date();
+  statusTime.textContent = formatClock(now);
+}
+
+function formatElapsed(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  return `${String(minutes).padStart(2, "0")}:${seconds}`;
+}
+
+function formatThreshold(value) {
+  return value >= 60 ? `${value / 60} hr` : `${value} min`;
+}
+
+function stageElapsed() {
+  return DEMO_MODE ? state.elapsedSeconds : state.elapsedSeconds / 60;
+}
+
+function stageValueToElapsedSeconds(value) {
+  return DEMO_MODE ? value : value * 60;
+}
+
+function orderedEffects() {
+  return ["blur", "fade", "tint"].filter((effect) => state.effects.has(effect));
+}
+
+function humanEffect(effect) {
+  return {
+    blur: "Blur",
+    fade: "Fade",
+    tint: "Tint"
+  }[effect];
+}
+
+function humanGoal(goal) {
+  return {
+    study: "Study break",
+    sleep: "Sleep routine",
+    focus: "Focus session"
+  }[goal];
+}
+
+function humanStyle(style) {
+  return {
+    gentle: "Gentle",
+    balanced: "Balanced",
+    firm: "Firm"
+  }[style];
+}
+
+function getStageByElapsed() {
+  const elapsed = stageElapsed();
+
+  if (!state.monitoredPulse) {
+    return 1;
+  }
+  if (elapsed >= state.thresholds[4]) {
+    return 4;
+  }
+  if (elapsed >= state.thresholds[3]) {
+    return 3;
+  }
+  if (elapsed >= state.thresholds[2]) {
+    return 2;
+  }
+  return 1;
+}
+
+function getStage3Progress(elapsed = stageElapsed()) {
+  if (elapsed < state.thresholds[3]) {
+    return 0;
+  }
+
+  const stageWindow = Math.max(state.thresholds[4] - state.thresholds[3], 1);
+  return Math.min((elapsed - state.thresholds[3]) / stageWindow, 1);
+}
+
+function setFrictionVisuals(target, progress) {
+  if (!target) {
+    return;
+  }
+
+  const blur = state.effects.has("blur") ? `${progress * 10}px` : "0px";
+  const brightness = state.effects.has("fade") ? `${1 - progress * 0.34}` : "1";
+  const saturate = state.effects.has("fade") ? `${1 - progress * 0.28}` : "1";
+  const tintOpacity = state.effects.has("tint") ? `${progress * 0.56}` : "0";
+
+  target.style.setProperty("--preview-blur", blur);
+  target.style.setProperty("--preview-brightness", brightness);
+  target.style.setProperty("--preview-saturate", saturate);
+  target.style.setProperty("--preview-tint-opacity", tintOpacity);
+}
+
+function syncPulseFriction() {
+  const progress = state.currentStage >= 3 ? getStage3Progress() : 0;
+  state.stage3Progress = progress;
+
+  pulseView.style.setProperty("--stage3-blur", state.effects.has("blur") ? `${progress * 10}px` : "0px");
+  pulseView.style.setProperty("--stage3-brightness", state.effects.has("fade") ? `${1 - progress * 0.34}` : "1");
+  pulseView.style.setProperty("--stage3-saturate", state.effects.has("fade") ? `${1 - progress * 0.28}` : "1");
+  pulseView.style.setProperty("--stage3-tint-opacity", state.effects.has("tint") ? `${progress * 0.56}` : "0");
+}
+
+function syncPreviewFriction(deltaMs = 1000 / 24) {
+  if (!previewStageValue || !previewFrame) {
+    return;
+  }
+
+  state.previewProgress += 0.015 * state.previewDirection * (deltaMs / (1000 / 24));
+  if (state.previewProgress >= 1) {
+    state.previewProgress = 1;
+    state.previewDirection = -1;
+  } else if (state.previewProgress <= 0.08) {
+    state.previewProgress = 0.08;
+    state.previewDirection = 1;
+  }
+
+  previewStageValue.textContent = `${Math.round(state.previewProgress * 100)}%`;
+  setFrictionVisuals(previewFrame, state.previewProgress);
+}
+
+function clearReminderTimer() {
+  window.clearTimeout(state.reminderTimeout);
+  state.reminderTimeout = 0;
+}
+
+function buildFeed() {
+  const repeated = [...FEED_ITEMS, ...FEED_ITEMS, ...FEED_ITEMS];
+  feedTrack.innerHTML = repeated
+    .map(
+      (item) => `
+        <article class="feed-slide">
+          <video src="${item.file}" muted loop playsinline preload="metadata"></video>
+          <div class="slide-overlay"></div>
+          <div class="slide-copy">
+            <p class="feed-author">${item.author}</p>
+            <p class="feed-caption">${item.caption}</p>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+
+  const height = feedViewport.clientHeight;
+  feedTrack.style.height = `${repeated.length * height}px`;
+  [...feedTrack.children].forEach((slide, index) => {
+    slide.style.height = `${height}px`;
+    slide.style.top = `${index * height}px`;
+  });
+
+  updateTrackPosition(false);
+  syncCurrentSlides();
+  playCurrentVideo();
+}
+
+function logicalIndex() {
+  return ((state.currentVideoIndex % FEED_ITEMS.length) + FEED_ITEMS.length) % FEED_ITEMS.length;
+}
+
+function updateTrackPosition(animated = true) {
+  const height = feedViewport.clientHeight;
+  feedTrack.style.transition = animated
+    ? "transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1)"
+    : "none";
+  feedTrack.style.transform = `translateY(${-state.currentVideoIndex * height + state.trackDragDeltaY}px)`;
+}
+
+function syncCurrentSlides() {
+  [...feedTrack.children].forEach((slide, index) => {
+    slide.classList.toggle("is-current", index === state.currentVideoIndex);
+  });
+}
+
+function playCurrentVideo() {
+  const slides = [...feedTrack.querySelectorAll("video")];
+  slides.forEach((video, index) => {
+    if (index === state.currentVideoIndex) {
+      if (video.currentTime < 0.18) {
+        video.currentTime = 0.18;
+      }
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  });
+}
+
+function recenterFeedIfNeeded() {
+  const length = FEED_ITEMS.length;
+  if (state.currentVideoIndex < length || state.currentVideoIndex >= length * 2) {
+    state.currentVideoIndex = length + logicalIndex();
+    updateTrackPosition(false);
+    syncCurrentSlides();
+    playCurrentVideo();
+  }
+}
+
+function clearReminderAndOffset() {
+  clearReminderTimer();
+  resetReminderOffset();
+}
+
+function resetElapsedClock() {
+  state.elapsedCarryMs = 0;
+  state.lastLoopAt = performance.now();
+}
+
+function resetSession() {
+  state.elapsedSeconds = 0;
+  state.currentStage = 1;
+  state.stage2Dismissed = false;
+  resetElapsedClock();
+  clearReminderAndOffset();
+  resetHold();
+  syncUi();
+}
+
+function currentPlanPreset() {
+  const presetEntry = Object.entries(PLAN_PRESETS).find(([, preset]) =>
+    [2, 3, 4].every((stage) => state.thresholds[stage] === preset[stage])
+  );
+
+  return presetEntry ? presetEntry[0] : null;
+}
+
+function updateControls() {
+  if (effectsCount) {
+    effectsCount.textContent = String(state.effects.size);
+  }
+  if (stage2Value) {
+    stage2Value.textContent = formatThreshold(state.thresholds[2]);
+  }
+  if (stage3Value) {
+    stage3Value.textContent = formatThreshold(state.thresholds[3]);
+  }
+  if (stage4Value) {
+    stage4Value.textContent = formatThreshold(state.thresholds[4]);
+  }
+  if (taskLaunchMeta) {
+    taskLaunchMeta.textContent = `${humanGoal(state.goal)} / ${humanStyle(state.interventionStyle)}`;
+  }
+  if (taskGoalChip) {
+    taskGoalChip.textContent = humanGoal(state.goal);
+  }
+  if (taskStyleChip) {
+    taskStyleChip.textContent = humanStyle(state.interventionStyle);
+  }
+  if (taskStage2Hint) {
+    taskStage2Hint.textContent = formatThreshold(state.thresholds[2]);
+  }
+  if (taskStage3Hint) {
+    taskStage3Hint.textContent = formatThreshold(state.thresholds[3]);
+  }
+  if (taskStage4Hint) {
+    taskStage4Hint.textContent = formatThreshold(state.thresholds[4]);
+  }
+  if (taskPreview2Hint) {
+    taskPreview2Hint.textContent = formatThreshold(state.thresholds[2]);
+  }
+  if (taskPreview3Hint) {
+    taskPreview3Hint.textContent = formatThreshold(state.thresholds[3]);
+  }
+  if (taskPreview4Hint) {
+    taskPreview4Hint.textContent = formatThreshold(state.thresholds[4]);
+  }
+  if (overviewGoalLabel) {
+    overviewGoalLabel.textContent = humanGoal(state.goal);
+  }
+  if (homeNextCueValue) {
+    homeNextCueValue.textContent = formatThreshold(state.thresholds[2]);
+  }
+  if (homeStyleValue) {
+    homeStyleValue.textContent = humanStyle(state.interventionStyle);
+  }
+  if (targetAppButton) {
+    targetAppButton.classList.toggle("is-selected", state.monitoredPulse);
+  }
+
+  thresholdSliders.forEach((slider) => {
+    slider.value = String(state.thresholds[Number(slider.dataset.sliderStage)]);
+  });
+
+  effectButtons.forEach((button) => {
+    button.classList.toggle("is-selected", state.effects.has(button.dataset.effect));
+  });
+
+  goalButtons.forEach((button) => {
+    button.classList.toggle("is-selected", button.dataset.goal === state.goal);
+  });
+
+  styleButtons.forEach((button) => {
+    button.classList.toggle("is-selected", button.dataset.style === state.interventionStyle);
+  });
+
+  const selectedPreset = currentPlanPreset();
+  presetButtons.forEach((button) => {
+    button.classList.toggle("is-selected", button.dataset.planPreset === selectedPreset);
+  });
+}
+
+function syncStatsDetail() {
+  const day = STATS_DAYS[state.selectedStatsDay];
+  if (!day) {
+    return;
+  }
+
+  statsDayButtons.forEach((button, index) => {
+    button.classList.toggle("is-selected", index === state.selectedStatsDay);
+  });
+
+  if (statsDetailDay) {
+    statsDetailDay.textContent = day.fullLabel;
+  }
+  if (statsDetailTitle) {
+    statsDetailTitle.textContent = `${day.protectedMinutes} min protected`;
+  }
+  if (statsDetailBadge) {
+    statsDetailBadge.textContent = day.badge;
+  }
+  if (statsDetailStops) {
+    statsDetailStops.textContent = String(day.stops);
+  }
+  if (statsDetailRate) {
+    statsDetailRate.textContent = `${day.returnRate}%`;
+  }
+  if (statsDetailMode) {
+    statsDetailMode.textContent = day.mode;
+  }
+  if (statsMomentsBadge) {
+    statsMomentsBadge.textContent = `${day.moments.length} moments`;
+  }
+  if (statsMomentList) {
+    statsMomentList.innerHTML = day.moments
+      .map(
+        (moment) => `
+          <article class="moment-row">
+            <span class="moment-time">${moment.time}</span>
+            <div class="moment-copy">
+              <strong>${moment.stage}</strong>
+              <span>${moment.result}</span>
+            </div>
+          </article>
+        `
+      )
+      .join("");
+  }
+}
+
+function syncOnboarding() {
+  if (!onboardingPanel) {
+    return;
+  }
+
+  onboardingPanel.classList.toggle("hidden", state.onboardingSeen || state.activeView !== "gentle");
+}
+
+function setView(view) {
+  state.activeView = view;
+  screen.dataset.activeView = view;
+  resetElapsedClock();
+
+  views.forEach((section) => {
+    section.classList.toggle("is-active", section.dataset.view === view);
+  });
+
+  if (view === "pulse") {
+    updateTrackPosition(false);
+    syncCurrentSlides();
+    playCurrentVideo();
+    syncUi();
+  } else {
+    [...feedTrack.querySelectorAll("video")].forEach((video) => video.pause());
+    resetSession();
+  }
+
+  syncOnboarding();
+}
+
+function setGentlePage(page) {
+  state.gentlePage = page;
+  gfPageButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.gfPage === page);
+  });
+  gfPages.forEach((section) => {
+    section.classList.toggle("is-active", section.dataset.gfView === page);
+  });
+  if (appScroll) {
+    appScroll.scrollTop = 0;
+  }
+  syncOnboarding();
+}
+
+function openPulseAtStage(stage) {
+  state.onboardingSeen = true;
+  setView("pulse");
+  state.stage2Dismissed = false;
+
+  if (stage === 1) {
+    state.elapsedSeconds = 0;
+  } else if (stage === 2) {
+    state.elapsedSeconds = stageValueToElapsedSeconds(state.thresholds[2]);
+  } else if (stage === 3) {
+    const stageWindow = Math.max(state.thresholds[4] - state.thresholds[3], 1);
+    const stageValue = Math.min(
+      state.thresholds[3] + Math.ceil(stageWindow * 0.6),
+      state.thresholds[4] - 1
+    );
+    state.elapsedSeconds = stageValueToElapsedSeconds(stageValue);
+  } else {
+    state.elapsedSeconds = stageValueToElapsedSeconds(state.thresholds[4]);
+  }
+
+  resetElapsedClock();
+  syncUi();
+}
+
+function openGentleShortcut(page) {
+  state.onboardingSeen = true;
+  setView("gentle");
+  setGentlePage(page);
+}
+
+function renderEffectBadges() {
+  selectedEffects.innerHTML = "";
+  orderedEffects().forEach((effect) => {
+    const badge = document.createElement("span");
+    badge.textContent = humanEffect(effect);
+    selectedEffects.appendChild(badge);
+  });
+}
+
+function stageMessageText(stage) {
+  return {
+    1: "Monitoring quietly.",
+    2: "Time to check in.",
+    3: "The feed is softening.",
+    4: "Stay or stop."
+  }[stage];
+}
+
+function stageLabel(stage) {
+  return {
+    1: "Protection on",
+    2: "Awareness",
+    3: "Soft friction",
+    4: "Choice"
+  }[stage];
+}
+
+function applyStageClasses() {
+  pulseView.classList.remove("stage-1", "stage-2", "stage-3", "stage-4");
+  pulseView.classList.add(`stage-${state.currentStage}`);
+}
+
+function resetReminderOffset() {
+  state.reminderOffsetY = 0;
+  state.reminderDragStartY = null;
+  reminderCard.style.setProperty("--reminder-offset", "0px");
+}
+
+function dismissReminder() {
+  state.stage2Dismissed = true;
+  clearReminderAndOffset();
+  reminderCard.classList.add("hidden");
+}
+
+function scheduleReminderAutoHide() {
+  clearReminderTimer();
+  state.reminderTimeout = window.setTimeout(() => {
+    if (state.currentStage === 2 && !state.stage2Dismissed) {
+      dismissReminder();
+    }
+  }, REMINDER_AUTO_HIDE_MS);
+}
+
+function syncReminderCard() {
+  if (state.currentStage !== 2 || state.stage2Dismissed) {
+    reminderCard.classList.add("hidden");
+    clearReminderAndOffset();
+    return;
+  }
+
+  reminderCard.classList.remove("hidden");
+  reminderText.textContent = `${formatThreshold(state.thresholds[2])} on TikTok. Swipe down.`;
+  if (!state.reminderTimeout) {
+    scheduleReminderAutoHide();
+  }
+}
+
+function syncInterventionSheet() {
+  if (state.currentStage !== 4) {
+    interventionSheet.classList.add("hidden");
+    return;
+  }
+
+  interventionSheet.classList.remove("hidden");
+  interventionTitle.textContent = "Keep scrolling?";
+  interventionText.textContent = "Hold to stay. Let go to stop.";
+  renderEffectBadges();
+}
+
+function syncUi() {
+  const previousStage = state.currentStage;
+  state.currentStage = getStageByElapsed();
+
+  if (previousStage !== state.currentStage && state.currentStage === 2) {
+    state.stage2Dismissed = false;
+    clearReminderAndOffset();
+  }
+
+  if (state.currentStage !== 2) {
+    clearReminderAndOffset();
+  }
+
+  demoTimer.textContent = formatElapsed(state.elapsedSeconds);
+  stagePill.textContent = stageLabel(state.currentStage);
+  stageMessage.textContent = stageMessageText(state.currentStage);
+  stageMessage.classList.toggle("hidden", state.currentStage === 1);
+  applyStageClasses();
+  syncPulseFriction();
+  syncReminderCard();
+  syncInterventionSheet();
+}
+
+function resetHold() {
+  cancelAnimationFrame(state.holdFrame);
+  state.holdFrame = 0;
+  state.holdStart = 0;
+  holdProgress.style.width = "0%";
+}
+
+function completeContinue() {
+  resetHold();
+  state.elapsedSeconds = 0;
+  state.stage2Dismissed = false;
+  resetElapsedClock();
+  clearReminderAndOffset();
+  syncUi();
+  commitTrackMove(1);
+}
+
+function holdStep(timestamp) {
+  if (!state.holdStart) {
+    state.holdStart = timestamp;
+  }
+
+  const progress = Math.min((timestamp - state.holdStart) / HOLD_DURATION_STAGE_4, 1);
+  holdProgress.style.width = `${progress * 100}%`;
+
+  if (progress >= 1) {
+    completeContinue();
+    return;
+  }
+
+  state.holdFrame = requestAnimationFrame(holdStep);
+}
+
+function startContinue() {
+  if (state.currentStage !== 4) {
+    return;
+  }
+
+  resetHold();
+  state.holdFrame = requestAnimationFrame(holdStep);
+}
+
+function stopContinue() {
+  resetHold();
+}
+
+function setThreshold(stage, value) {
+  const minimumGap = 5;
+  state.thresholds[stage] = value;
+
+  if (stage === 2 && state.thresholds[3] <= value) {
+    state.thresholds[3] = value + minimumGap;
+  }
+  if (stage <= 3 && state.thresholds[4] <= state.thresholds[3]) {
+    state.thresholds[4] = state.thresholds[3] + minimumGap;
+  }
+  if (stage === 4 && state.thresholds[3] >= value) {
+    state.thresholds[3] = value - minimumGap;
+  }
+  if (state.thresholds[2] >= state.thresholds[3]) {
+    state.thresholds[2] = state.thresholds[3] - minimumGap;
+  }
+
+  state.thresholds[2] = Math.min(Math.max(state.thresholds[2], 5), 30);
+  state.thresholds[3] = Math.min(Math.max(state.thresholds[3], 10), 60);
+  state.thresholds[4] = Math.min(Math.max(state.thresholds[4], 15), 90);
+
+  updateControls();
+  syncUi();
+}
+
+function jumpToNextStage() {
+  if (state.currentStage === 1) {
+    state.elapsedSeconds = stageValueToElapsedSeconds(state.thresholds[2]);
+  } else if (state.currentStage === 2) {
+    const stageWindow = Math.max(state.thresholds[4] - state.thresholds[3], 1);
+    const stageValue = Math.min(
+      state.thresholds[3] + Math.ceil(stageWindow * 0.6),
+      state.thresholds[4] - 1
+    );
+    state.elapsedSeconds = stageValueToElapsedSeconds(stageValue);
+  } else if (state.currentStage === 3) {
+    state.elapsedSeconds = stageValueToElapsedSeconds(state.thresholds[4]);
+  } else {
+    state.elapsedSeconds = 0;
+    state.stage2Dismissed = false;
+  }
+
+  resetElapsedClock();
+  syncUi();
+}
+
+function startReminderDrag(event) {
+  if (state.currentStage !== 2) {
+    return;
+  }
+
+  state.reminderDragStartY = event.clientY;
+  reminderCard.setPointerCapture(event.pointerId);
+}
+
+function moveReminderDrag(event) {
+  if (state.reminderDragStartY === null) {
+    return;
+  }
+
+  state.reminderOffsetY = Math.max(event.clientY - state.reminderDragStartY, 0);
+  reminderCard.style.setProperty("--reminder-offset", `${state.reminderOffsetY}px`);
+}
+
+function endReminderDrag(event) {
+  if (state.reminderDragStartY === null) {
+    return;
+  }
+
+  reminderCard.releasePointerCapture(event.pointerId);
+
+  if (state.reminderOffsetY >= REMINDER_DISMISS_THRESHOLD) {
+    dismissReminder();
+    return;
+  }
+
+  resetReminderOffset();
+}
+
+function commitTrackMove(direction) {
+  if (state.trackAnimating || state.currentStage === 4) {
+    return;
+  }
+
+  state.trackAnimating = true;
+  state.currentVideoIndex += direction;
+  state.trackDragDeltaY = 0;
+  updateTrackPosition(true);
+
+  window.setTimeout(() => {
+    state.trackAnimating = false;
+    recenterFeedIfNeeded();
+    syncCurrentSlides();
+    playCurrentVideo();
+  }, 330);
+}
+
+function onTrackPointerDown(event) {
+  if (state.currentStage === 4 || state.trackAnimating) {
+    return;
+  }
+
+  state.trackDragStartY = event.clientY;
+  state.trackDragDeltaY = 0;
+  feedViewport.setPointerCapture(event.pointerId);
+}
+
+function onTrackPointerMove(event) {
+  if (state.trackDragStartY === null || state.currentStage === 4 || state.trackAnimating) {
+    return;
+  }
+
+  state.trackDragDeltaY = event.clientY - state.trackDragStartY;
+  updateTrackPosition(false);
+}
+
+function onTrackPointerUp(event) {
+  if (state.trackDragStartY === null) {
+    return;
+  }
+
+  feedViewport.releasePointerCapture(event.pointerId);
+  const deltaY = state.trackDragDeltaY;
+  state.trackDragStartY = null;
+  state.trackDragDeltaY = 0;
+
+  if (Math.abs(deltaY) < VIDEO_SWIPE_THRESHOLD) {
+    updateTrackPosition(true);
+    return;
+  }
+
+  commitTrackMove(deltaY < 0 ? 1 : -1);
+}
+
+openButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setView(button.dataset.openApp);
+  });
+});
+
+homeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setView("home");
+  });
+});
+
+gfPageButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setGentlePage(button.dataset.gfPage);
+  });
+});
+
+gfQuickLinks.forEach((button) => {
+  button.addEventListener("click", () => {
+    setGentlePage(button.dataset.gfPageTarget);
+  });
+});
+
+taskActionButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    if (button.dataset.taskAction === "start-protected") {
+      openPulseAtStage(1);
+      return;
+    }
+    if (button.dataset.taskAction === "open-settings") {
+      openGentleShortcut("settings");
+      return;
+    }
+    if (button.dataset.taskAction === "open-stats") {
+      openGentleShortcut("insights");
+    }
+  });
+});
+
+previewStageButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    openPulseAtStage(Number(button.dataset.previewStage));
+  });
+});
+
+targetAppButton.addEventListener("click", () => {
+  state.monitoredPulse = !state.monitoredPulse;
+  updateControls();
+  syncUi();
+});
+
+thresholdSliders.forEach((slider) => {
+  slider.addEventListener("input", () => {
+    setThreshold(Number(slider.dataset.sliderStage), Number(slider.value));
+  });
+});
+
+presetButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const preset = PLAN_PRESETS[button.dataset.planPreset];
+    if (!preset) {
+      return;
+    }
+
+    state.thresholds = { 2: preset[2], 3: preset[3], 4: preset[4] };
+    updateControls();
+    syncUi();
+  });
+});
+
+adjustStageButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const stage = Number(button.dataset.adjustStage);
+    const direction = Number(button.dataset.adjustDirection || 0);
+    setThreshold(stage, state.thresholds[stage] + direction * 5);
+  });
+});
+
+effectButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const effect = button.dataset.effect;
+    if (state.effects.has(effect)) {
+      state.effects.delete(effect);
+    } else {
+      state.effects.add(effect);
+    }
+    updateControls();
+    syncUi();
+  });
+});
+
+goalButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    state.goal = button.dataset.goal;
+    updateControls();
+  });
+});
+
+styleButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    state.interventionStyle = button.dataset.style;
+    updateControls();
+  });
+});
+
+statsDayButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    state.selectedStatsDay = Number(button.dataset.statsDay);
+    syncStatsDetail();
+  });
+});
+
+startSetupButton.addEventListener("click", () => {
+  state.onboardingSeen = true;
+  syncOnboarding();
+  setGentlePage("settings");
+});
+
+nextStageButton.addEventListener("click", jumpToNextStage);
+reminderCard.addEventListener("pointerdown", startReminderDrag);
+reminderCard.addEventListener("pointermove", moveReminderDrag);
+reminderCard.addEventListener("pointerup", endReminderDrag);
+reminderCard.addEventListener("pointercancel", endReminderDrag);
+
+feedViewport.addEventListener("pointerdown", onTrackPointerDown);
+feedViewport.addEventListener("pointermove", onTrackPointerMove);
+feedViewport.addEventListener("pointerup", onTrackPointerUp);
+feedViewport.addEventListener("pointercancel", onTrackPointerUp);
+
+continueButton.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  startContinue();
+});
+
+["pointerup", "pointercancel", "pointerleave"].forEach((eventName) => {
+  continueButton.addEventListener(eventName, stopContinue);
+});
+
+returnHomeButton.addEventListener("click", () => {
+  setView("home");
+});
+
+takeBreakButton.addEventListener("click", () => {
+  setView("home");
+});
+
+window.addEventListener(
+  "wheel",
+  (event) => {
+    if (state.activeView !== "pulse" || state.currentStage === 4 || state.trackAnimating) {
+      return;
+    }
+
+    if (Math.abs(event.deltaY) < 18) {
+      return;
+    }
+
+    event.preventDefault();
+    commitTrackMove(event.deltaY > 0 ? 1 : -1);
+  },
+  { passive: false }
+);
+
+window.addEventListener("keydown", (event) => {
+  if (state.activeView !== "pulse" || state.currentStage === 4 || state.trackAnimating) {
+    return;
+  }
+
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    commitTrackMove(-1);
+  } else if (event.key === "ArrowDown") {
+    event.preventDefault();
+    commitTrackMove(1);
+  }
+});
+
+window.setInterval(() => {
+  const now = performance.now();
+  const deltaMs = now - state.lastLoopAt;
+  state.lastLoopAt = now;
+
+  updateStatusTime();
+
+  if (state.activeView === "pulse" && state.currentStage < 4) {
+    state.elapsedCarryMs += deltaMs;
+    if (state.elapsedCarryMs >= 1000) {
+      const wholeSeconds = Math.floor(state.elapsedCarryMs / 1000);
+      state.elapsedSeconds += wholeSeconds;
+      state.elapsedCarryMs -= wholeSeconds * 1000;
+      syncUi();
+    }
+  }
+
+  if (state.activeView === "gentle") {
+    syncPreviewFriction(deltaMs);
+  }
+}, 1000 / 24);
+
+window.addEventListener("resize", () => {
+  buildFeed();
+});
+
+feedTrack.addEventListener(
+  "loadeddata",
+  (event) => {
+    const video = event.target;
+    if (!(video instanceof HTMLVideoElement)) {
+      return;
+    }
+
+    if (video.currentTime < 0.18) {
+      video.currentTime = 0.18;
+    }
+  },
+  true
+);
+
+if (previewVideo) {
+  previewVideo.addEventListener("loadeddata", () => {
+    if (previewVideo.currentTime < 0.18) {
+      previewVideo.currentTime = 0.18;
+    }
+    previewVideo.play().catch(() => {});
+  });
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    resetHold();
+    clearReminderAndOffset();
+  } else {
+    resetElapsedClock();
+    if (previewVideo) {
+      previewVideo.play().catch(() => {});
+    }
+    playCurrentVideo();
+  }
+});
+
+window.addEventListener("blur", () => {
+  resetElapsedClock();
+  resetHold();
+  clearReminderAndOffset();
+});
+
+updateStatusTime();
+document.body.classList.toggle("is-demo-mode", DEMO_MODE);
+buildFeed();
+setGentlePage("overview");
+updateControls();
+syncStatsDetail();
+if (previewStageValue && previewFrame) {
+  syncPreviewFriction();
+}
+syncUi();
+setView("home");

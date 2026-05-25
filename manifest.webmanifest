@@ -1,0 +1,19 @@
+{
+  "name": "Gentle Friction",
+  "short_name": "Gentle",
+  "description": "A self-regulation layer for short-video overuse.",
+  "start_url": "./prototype-web/",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8f5ef",
+  "theme_color": "#f8f5ef",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./Logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
