@@ -1365,14 +1365,14 @@ button {
 .timing-preset-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 14px;
+  gap: 10px;
+  margin-top: 18px;
 }
 
 .timing-preset {
   display: grid;
-  gap: 4px;
-  padding: 12px 10px;
+  gap: 6px;
+  padding: 14px 12px;
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.62);
   background:
@@ -2262,14 +2262,15 @@ button {
 
 .slider-group {
   display: grid;
-  gap: 12px;
+  gap: 16px;
+  margin-top: 18px;
 }
 
 .slider-card {
   position: relative;
   display: grid;
-  gap: 12px;
-  padding: 17px;
+  gap: 16px;
+  padding: 20px 20px 18px;
   border: 1px solid rgba(255, 255, 255, 0.62);
   border-radius: 26px;
   overflow: hidden;
@@ -2283,14 +2284,20 @@ button {
 
 .slider-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
+}
+
+.slider-head > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
 }
 
 .slider-head strong {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .slider-head p {
@@ -3294,6 +3301,21 @@ button {
   .section-head {
     gap: 8px;
     flex-wrap: wrap;
+  }
+
+  .timing-preset-row {
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .slider-group {
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  .slider-card {
+    gap: 14px;
+    padding: 18px 16px 16px;
   }
 
   .app-choice-grid {
