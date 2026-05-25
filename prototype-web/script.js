@@ -1,18 +1,18 @@
 const FEED_ITEMS = [
   {
-    file: "../video/v0200fg10000d6he63nog65qc0cab430.MP4",
-    author: "@pulse.moment",
-    caption: "One more swipe often becomes one more hour."
+    file: "../video/coverr-subway.mp4",
+    author: "@subway.scenes",
+    caption: "One more swipe can quietly turn a short break into autopilot."
   },
   {
-    file: "../video/v0200fg10000d7rhrlfog65q2tugdel0.MP4",
-    author: "@daily.loop",
-    caption: "The smoother the feed, the easier it is to lose time."
+    file: "../video/coverr-golden-gate.mp4",
+    author: "@coast.views",
+    caption: "A calm feed still makes it easy to keep going for one more clip."
   },
   {
-    file: "../video/v0200fg10000d83g6u7og65o63m4mbv0.MP4",
-    author: "@night.archive",
-    caption: "Gentle Friction steps in before scrolling takes over."
+    file: "../video/coverr-houston.mp4",
+    author: "@city.frames",
+    caption: "Gentle Friction steps in before time disappears into the scroll."
   }
 ];
 
@@ -454,6 +454,10 @@ function hasEnabledApps() {
   return enabledAppIds().length > 0;
 }
 
+function isPulseProtected() {
+  return state.monitoredApps.has("pulse");
+}
+
 function currentProtectedAppLabel() {
   const appIds = enabledAppIds();
   if (!appIds.length) {
@@ -628,6 +632,9 @@ function syncUsageStats() {
 function getStageByElapsed() {
   const elapsed = stageElapsed();
 
+  if (state.activeView === "pulse" && !isPulseProtected()) {
+    return 1;
+  }
   if (!hasEnabledApps()) {
     return 1;
   }
@@ -972,6 +979,13 @@ function openPulseAtStage(stage) {
   setView("pulse");
   state.stage2Dismissed = false;
 
+  if (!isPulseProtected()) {
+    state.elapsedSeconds = 0;
+    resetElapsedClock();
+    syncUi();
+    return;
+  }
+
   if (stage === 1) {
     state.elapsedSeconds = 0;
   } else if (stage === 2) {
@@ -1051,7 +1065,7 @@ function scheduleReminderAutoHide() {
 }
 
 function syncReminderCard() {
-  if (state.currentStage !== 2 || state.stage2Dismissed) {
+  if (!isPulseProtected() || state.currentStage !== 2 || state.stage2Dismissed) {
     reminderCard.classList.add("hidden");
     clearReminderAndOffset();
     return;
@@ -1065,7 +1079,7 @@ function syncReminderCard() {
 }
 
 function syncInterventionSheet() {
-  if (state.currentStage !== 4) {
+  if (!isPulseProtected() || state.currentStage !== 4) {
     interventionSheet.classList.add("hidden");
     return;
   }
@@ -1090,9 +1104,12 @@ function syncUi() {
   }
 
   demoTimer.textContent = formatElapsed(state.elapsedSeconds);
-  stagePill.textContent = stageLabel(state.currentStage);
-  stageMessage.textContent = stageMessageText(state.currentStage);
-  stageMessage.classList.toggle("hidden", state.currentStage === 1);
+  stagePill.textContent = isPulseProtected() ? stageLabel(state.currentStage) : "Protection off";
+  stagePill.classList.toggle("hidden", !isPulseProtected());
+  nextStageButton.classList.toggle("hidden", !isPulseProtected());
+  demoTimer.classList.toggle("hidden", !isPulseProtected());
+  stageMessage.textContent = isPulseProtected() ? stageMessageText(state.currentStage) : "";
+  stageMessage.classList.toggle("hidden", !isPulseProtected() || state.currentStage === 1);
   applyStageClasses();
   syncPulseFriction();
   syncReminderCard();
@@ -1172,6 +1189,10 @@ function setThreshold(stage, value) {
 }
 
 function jumpToNextStage() {
+  if (!isPulseProtected()) {
+    return;
+  }
+
   if (state.currentStage === 1) {
     state.elapsedSeconds = stageValueToElapsedSeconds(state.thresholds[2]);
   } else if (state.currentStage === 2) {
@@ -1343,6 +1364,14 @@ targetAppButtons.forEach((button) => {
       state.monitoredApps.add(appId);
     }
 
+    if (appId === "pulse") {
+      state.elapsedSeconds = 0;
+      state.stage2Dismissed = false;
+      clearReminderAndOffset();
+      resetHold();
+      resetElapsedClock();
+    }
+
     if (!hasEnabledApps() && state.protectionRunning) {
       stopProtectionSession("Stopped in settings");
     }
@@ -1505,7 +1534,7 @@ window.setInterval(() => {
 
   updateStatusTime();
 
-  if (state.activeView === "pulse" && state.currentStage < 4) {
+  if (state.activeView === "pulse" && isPulseProtected() && state.currentStage < 4) {
     state.elapsedCarryMs += deltaMs;
     if (state.elapsedCarryMs >= 1000) {
       const wholeSeconds = Math.floor(state.elapsedCarryMs / 1000);
