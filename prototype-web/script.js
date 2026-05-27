@@ -48,7 +48,7 @@ const FEED_ITEMS = FEED_CLIPS.map((item) => ({
   shares: item.shares
 }));
 
-const HOLD_DURATION_STAGE_4 = 10500;
+const HOLD_DURATION_STAGE_4 = 20000;
 const REMINDER_DISMISS_THRESHOLD = 90;
 const REMINDER_AUTO_HIDE_MS = 5000;
 const VIDEO_SWIPE_THRESHOLD = 56;
@@ -1185,7 +1185,7 @@ function syncInterventionSheet() {
 
   interventionSheet.classList.remove("hidden");
   interventionTitle.textContent = "Keep watching?";
-  interventionText.textContent = "Hold for 10 seconds to continue. Let go to stop.";
+  interventionText.textContent = "Return to the life waiting for you.";
 }
 
 function syncUi() {
