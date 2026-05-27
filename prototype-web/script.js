@@ -58,6 +58,7 @@ const BREAK_COOLDOWN_MS = (15 * 60 * 1000) / APP_TIME_MULTIPLIER;
 const REMINDER_DISMISS_THRESHOLD = 90;
 const REMINDER_AUTO_HIDE_MS = 5000 / APP_TIME_MULTIPLIER;
 const VIDEO_SWIPE_THRESHOLD = 56;
+const DEMO_REENTRY_ELAPSED_MINUTES = 9;
 const DEMO_MODE = new URLSearchParams(window.location.search).has("demo");
 const PLAN_PRESETS = {
   quick: { 2: 5, 3: 10, 4: 15 },
@@ -804,6 +805,30 @@ function getStage3Progress(elapsed = stageElapsed()) {
   return Math.min((elapsed - state.thresholds[3]) / stageWindow, 1);
 }
 
+function safelySetPointerCapture(target, pointerId) {
+  if (!target || typeof target.setPointerCapture !== "function") {
+    return;
+  }
+
+  try {
+    target.setPointerCapture(pointerId);
+  } catch {}
+}
+
+function safelyReleasePointerCapture(target, pointerId) {
+  if (
+    !target ||
+    typeof target.releasePointerCapture !== "function" ||
+    (typeof target.hasPointerCapture === "function" && !target.hasPointerCapture(pointerId))
+  ) {
+    return;
+  }
+
+  try {
+    target.releasePointerCapture(pointerId);
+  } catch {}
+}
+
 function setFrictionVisuals(target, progress) {
   if (!target) {
     return;
@@ -1197,6 +1222,33 @@ function openPulseAtStage(stage) {
   syncUi();
 }
 
+function openPulseForDemoReentry() {
+  state.onboardingSeen = true;
+  setView("pulse");
+  state.stage2Dismissed = false;
+
+  if (hasActiveCooldown()) {
+    state.elapsedSeconds = 0;
+    resetElapsedClock();
+    clearReminderAndOffset();
+    resetHold();
+    syncUi();
+    return;
+  }
+
+  if (!isPulseProtected()) {
+    state.elapsedSeconds = 0;
+    resetElapsedClock();
+    syncUi();
+    return;
+  }
+
+  const reentryValue = Math.max(state.thresholds[2], Math.min(DEMO_REENTRY_ELAPSED_MINUTES, state.thresholds[3] - 1));
+  state.elapsedSeconds = stageValueToElapsedSeconds(reentryValue);
+  resetElapsedClock();
+  syncUi();
+}
+
 function openGentleShortcut(page) {
   state.onboardingSeen = true;
   setView("gentle");
@@ -1450,7 +1502,7 @@ function startReminderDrag(event) {
   }
 
   state.reminderDragStartY = event.clientY;
-  reminderCard.setPointerCapture(event.pointerId);
+  safelySetPointerCapture(reminderCard, event.pointerId);
 }
 
 function moveReminderDrag(event) {
@@ -1467,7 +1519,7 @@ function endReminderDrag(event) {
     return;
   }
 
-  reminderCard.releasePointerCapture(event.pointerId);
+  safelyReleasePointerCapture(reminderCard, event.pointerId);
 
   if (state.reminderOffsetY >= REMINDER_DISMISS_THRESHOLD) {
     dismissReminder();
@@ -1502,7 +1554,7 @@ function onTrackPointerDown(event) {
 
   state.trackDragStartY = event.clientY;
   state.trackDragDeltaY = 0;
-  feedViewport.setPointerCapture(event.pointerId);
+  safelySetPointerCapture(feedViewport, event.pointerId);
 }
 
 function onTrackPointerMove(event) {
@@ -1519,7 +1571,7 @@ function onTrackPointerUp(event) {
     return;
   }
 
-  feedViewport.releasePointerCapture(event.pointerId);
+  safelyReleasePointerCapture(feedViewport, event.pointerId);
   const deltaY = state.trackDragDeltaY;
   state.trackDragStartY = null;
   state.trackDragDeltaY = 0;
@@ -1535,6 +1587,11 @@ function onTrackPointerUp(event) {
 openButtons.forEach((button) => {
   button.addEventListener("click", () => {
     if (button.dataset.openApp === "pulse") {
+      if (state.protectionRunning && isPulseProtected()) {
+        openPulseForDemoReentry();
+        return;
+      }
+
       openPulseAtStage(1);
       return;
     }
