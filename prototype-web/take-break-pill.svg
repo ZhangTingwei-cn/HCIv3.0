@@ -1,21 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="600" height="136" viewBox="0 0 600 136" fill="none">
   <defs>
-    <linearGradient id="bg" x1="18" y1="18" x2="582" y2="118" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#89B779"/>
-      <stop offset="1" stop-color="#6B9765"/>
+    <linearGradient id="takeBg" x1="24" y1="14" x2="576" y2="122" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#93C17D"/>
+      <stop offset=".56" stop-color="#7EAD72"/>
+      <stop offset="1" stop-color="#6C9865"/>
     </linearGradient>
-    <radialGradient id="shine" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(174 14) rotate(90) scale(76 186)">
-      <stop stop-color="white" stop-opacity=".48"/>
+    <radialGradient id="takeGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(164 10) rotate(90) scale(86 196)">
+      <stop stop-color="white" stop-opacity=".5"/>
       <stop offset="1" stop-color="white" stop-opacity="0"/>
     </radialGradient>
-    <filter id="shadow" x="0" y="0" width="600" height="136" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#0E141E" flood-opacity=".24"/>
+    <filter id="takeShadow" x="0" y="0" width="600" height="136" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#0E141E" flood-opacity=".24"/>
     </filter>
   </defs>
-  <g filter="url(#shadow)">
-    <rect x="8" y="8" width="584" height="120" rx="34" fill="url(#bg)"/>
-    <rect x="9" y="9" width="582" height="118" rx="33" stroke="rgba(255,255,255,.42)"/>
-    <rect x="8" y="8" width="584" height="120" rx="34" fill="url(#shine)"/>
+  <g filter="url(#takeShadow)">
+    <rect x="10" y="8" width="580" height="120" rx="34" fill="url(#takeBg)"/>
+    <rect x="11" y="9" width="578" height="118" rx="33" stroke="rgba(255,255,255,.42)"/>
+    <rect x="10" y="8" width="580" height="120" rx="34" fill="url(#takeGlow)"/>
   </g>
-  <text x="300" y="79" fill="white" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">Take break</text>
+  <g opacity=".92">
+    <circle cx="112" cy="68" r="28" fill="rgba(255,255,255,.18)"/>
+    <rect x="100" y="54" width="8" height="28" rx="4" fill="white"/>
+    <rect x="116" y="54" width="8" height="28" rx="4" fill="white"/>
+  </g>
+  <text x="316" y="79" fill="white" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">Take break</text>
 </svg>

@@ -351,6 +351,7 @@ const nextStageButton = document.getElementById("nextStageButton");
 const reminderCard = document.getElementById("reminderCard");
 const reminderText = document.getElementById("reminderText");
 const interventionSheet = document.getElementById("interventionSheet");
+const interruptPanel = document.getElementById("interruptPanel");
 const interventionTitle = document.getElementById("interventionTitle");
 const interventionText = document.getElementById("interventionText");
 const selectedEffects = document.getElementById("selectedEffects");
@@ -402,8 +403,10 @@ function formatElapsed(totalSeconds) {
 }
 
 function formatWatchDuration(totalSeconds) {
-  const seconds = Math.max(1, Math.round(totalSeconds));
-  return `${seconds} ${seconds === 1 ? "second" : "seconds"}`;
+  const safeSeconds = Math.max(0, Math.round(totalSeconds));
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = String(safeSeconds % 60).padStart(2, "0");
+  return `${minutes} min ${seconds} sec`;
 }
 
 function formatThreshold(value) {
@@ -1174,6 +1177,9 @@ function syncReminderCard() {
 function syncInterventionSheet() {
   if (!isPulseProtected() || state.currentStage !== 4) {
     interventionSheet.classList.add("hidden");
+    if (interruptPanel) {
+      interruptPanel.classList.remove("is-holding");
+    }
     return;
   }
 
@@ -1213,6 +1219,9 @@ function resetHold() {
   state.holdFrame = 0;
   state.holdStart = 0;
   holdProgress.style.width = "0%";
+  if (interruptPanel) {
+    interruptPanel.classList.remove("is-holding");
+  }
 }
 
 function completeContinue() {
@@ -1247,6 +1256,9 @@ function startContinue() {
   }
 
   resetHold();
+  if (interruptPanel) {
+    interruptPanel.classList.add("is-holding");
+  }
   state.holdFrame = requestAnimationFrame(holdStep);
 }
 
