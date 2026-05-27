@@ -52,10 +52,11 @@ const FEED_ITEMS = FEED_CLIPS.map((item) => ({
   shares: item.shares
 }));
 
-const HOLD_DURATION_STAGE_4 = 20000;
-const BREAK_COOLDOWN_MS = 15 * 60 * 1000;
+const APP_TIME_MULTIPLIER = 3;
+const HOLD_DURATION_STAGE_4 = 20000 / APP_TIME_MULTIPLIER;
+const BREAK_COOLDOWN_MS = (15 * 60 * 1000) / APP_TIME_MULTIPLIER;
 const REMINDER_DISMISS_THRESHOLD = 90;
-const REMINDER_AUTO_HIDE_MS = 5000;
+const REMINDER_AUTO_HIDE_MS = 5000 / APP_TIME_MULTIPLIER;
 const VIDEO_SWIPE_THRESHOLD = 56;
 const DEMO_MODE = new URLSearchParams(window.location.search).has("demo");
 const PLAN_PRESETS = {
@@ -592,12 +593,16 @@ function currentProtectedAppLabel() {
   return appIds.length === 1 ? firstName : `${firstName} + ${appIds.length - 1} apps`;
 }
 
+function appScaledSecondsFromMs(durationMs) {
+  return Math.max(1, Math.round((durationMs * APP_TIME_MULTIPLIER) / 1000));
+}
+
 function activeProtectionSeconds() {
   if (!state.protectionRunning || !state.protectionStartedAt) {
     return 0;
   }
 
-  return Math.max(1, Math.round((Date.now() - state.protectionStartedAt) / 1000));
+  return appScaledSecondsFromMs(Date.now() - state.protectionStartedAt);
 }
 
 function totalProtectedSeconds() {
@@ -618,7 +623,7 @@ function stopProtectionSession(result = "Paused") {
   state.usageData.sessions.unshift({
     startedAt: state.protectionStartedAt,
     endedAt,
-    durationSeconds: Math.max(1, Math.round((endedAt - state.protectionStartedAt) / 1000)),
+    durationSeconds: appScaledSecondsFromMs(endedAt - state.protectionStartedAt),
     result,
     app: state.protectionAppLabel || currentProtectedAppLabel()
   });
@@ -1771,7 +1776,7 @@ window.setInterval(() => {
   updateStatusTime();
 
   if (state.activeView === "pulse" && isPulseProtected() && state.currentStage < 4 && !hasActiveCooldown()) {
-    state.elapsedCarryMs += deltaMs;
+    state.elapsedCarryMs += deltaMs * APP_TIME_MULTIPLIER;
     if (state.elapsedCarryMs >= 1000) {
       const wholeSeconds = Math.floor(state.elapsedCarryMs / 1000);
       state.elapsedSeconds += wholeSeconds;
