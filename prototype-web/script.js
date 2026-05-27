@@ -315,6 +315,10 @@ const overviewGoalLabel = document.getElementById("overviewGoalLabel");
 const homeNextCueValue = document.getElementById("homeNextCueValue");
 const homeStyleValue = document.getElementById("homeStyleValue");
 const startProtectionButton = document.getElementById("startProtectionButton");
+const homeProtectionOrb = document.querySelector(".protection-orb");
+const homeProtectedKicker = document.getElementById("homeProtectedKicker");
+const homeProtectedValue = document.getElementById("homeProtectedValue");
+const homeProtectedCopy = document.getElementById("homeProtectedCopy");
 const homePausesValue = document.getElementById("homePausesValue");
 const homePausesCopy = document.getElementById("homePausesCopy");
 const settingsAppStatus = document.getElementById("settingsAppStatus");
@@ -426,6 +430,19 @@ function formatUsageDuration(totalSeconds) {
     return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
   }
   return `${seconds}s`;
+}
+
+function formatHomeProtectionDuration(totalSeconds) {
+  const safeSeconds = Math.max(0, Math.round(totalSeconds));
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
+  const seconds = safeSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${String(minutes).padStart(2, "0")}m`;
+  }
+
+  return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
 }
 
 function formatUsageTime(timestamp) {
@@ -608,6 +625,18 @@ function syncUsageStats() {
   }
   if (homePausesCopy) {
     homePausesCopy.textContent = pauseCount > 0 ? "Recorded pauses" : "No pauses yet";
+  }
+  if (homeProtectedValue) {
+    homeProtectedValue.textContent = formatHomeProtectionDuration(totalDuration);
+  }
+  if (homeProtectionOrb) {
+    homeProtectionOrb.classList.toggle("is-live", state.protectionRunning);
+  }
+  if (homeProtectedKicker) {
+    homeProtectedKicker.textContent = state.protectionRunning ? "Protection live" : "Protected time";
+  }
+  if (homeProtectedCopy) {
+    homeProtectedCopy.textContent = state.protectionRunning ? "Running now" : "Saved with Gentle Friction";
   }
   if (settingsAppStatus) {
     settingsAppStatus.textContent = state.monitoredApps.has("pulse") ? "Protection on" : "Protection off";
