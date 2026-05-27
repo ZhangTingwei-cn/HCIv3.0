@@ -1,18 +1,78 @@
 const FEED_ITEMS = [
   {
-    file: "../video/coverr-subway.mp4",
+    file: "../video/app-feed-15/feed_001.mp4",
+    author: "@island.minute",
+    caption: "A quick break can drift much longer than planned."
+  },
+  {
+    file: "../video/app-feed-15/feed_002.mp4",
     author: "@subway.scenes",
     caption: "One more swipe can quietly turn a short break into autopilot."
   },
   {
-    file: "../video/coverr-golden-gate.mp4",
-    author: "@coast.views",
+    file: "../video/app-feed-15/feed_003.mp4",
+    author: "@sunset.loop",
     caption: "A calm feed still makes it easy to keep going for one more clip."
   },
   {
-    file: "../video/coverr-houston.mp4",
-    author: "@city.frames",
+    file: "../video/app-feed-15/feed_004.mp4",
+    author: "@city.pause",
     caption: "Gentle Friction steps in before time disappears into the scroll."
+  },
+  {
+    file: "../video/app-feed-15/feed_005.mp4",
+    author: "@kitchen.frame",
+    caption: "Scrolling often starts small and keeps asking for a little more."
+  },
+  {
+    file: "../video/app-feed-15/feed_006.mp4",
+    author: "@peak.notes",
+    caption: "The longer we stay, the harder it feels to step back out."
+  },
+  {
+    file: "../video/app-feed-15/feed_007.mp4",
+    author: "@road.window",
+    caption: "A gentle cue works best before the feed fully takes over."
+  },
+  {
+    file: "../video/app-feed-15/feed_008.mp4",
+    author: "@screen.rhythm",
+    caption: "Smooth motion makes time feel lighter than it really is."
+  },
+  {
+    file: "../video/app-feed-15/feed_009.mp4",
+    author: "@coast.views",
+    caption: "Short videos are easiest to stop before the habit locks in."
+  },
+  {
+    file: "../video/app-feed-15/feed_010.mp4",
+    author: "@studio.craft",
+    caption: "Soft friction adds a pause without taking control away."
+  },
+  {
+    file: "../video/app-feed-15/feed_011.mp4",
+    author: "@city.frames",
+    caption: "A visible timer helps bring attention back to the moment."
+  },
+  {
+    file: "../video/app-feed-15/feed_012.mp4",
+    author: "@harbor.light",
+    caption: "A small check-in can be enough to break the automatic scroll."
+  },
+  {
+    file: "../video/app-feed-15/feed_013.mp4",
+    author: "@quiet.resort",
+    caption: "The goal is not to block you, only to help you notice sooner."
+  },
+  {
+    file: "../video/app-feed-15/feed_014.mp4",
+    author: "@shore.daily",
+    caption: "Support feels better when it stays calm and easy to dismiss."
+  },
+  {
+    file: "../video/app-feed-15/feed_015.mp4",
+    author: "@trail.overview",
+    caption: "A better ending starts with one intentional decision."
   }
 ];
 
