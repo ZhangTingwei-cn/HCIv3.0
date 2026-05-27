@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="136" viewBox="0 0 600 136" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="18" y1="18" x2="582" y2="118" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#89B779"/>
+      <stop offset="1" stop-color="#6B9765"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(174 14) rotate(90) scale(76 186)">
+      <stop stop-color="white" stop-opacity=".48"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="0" y="0" width="600" height="136" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#0E141E" flood-opacity=".24"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <rect x="8" y="8" width="584" height="120" rx="34" fill="url(#bg)"/>
+    <rect x="9" y="9" width="582" height="118" rx="33" stroke="rgba(255,255,255,.42)"/>
+    <rect x="8" y="8" width="584" height="120" rx="34" fill="url(#shine)"/>
+  </g>
+  <text x="300" y="79" fill="white" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">Take break</text>
+</svg>

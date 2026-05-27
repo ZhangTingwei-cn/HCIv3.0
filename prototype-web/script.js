@@ -401,6 +401,20 @@ function formatElapsed(totalSeconds) {
   return `${String(minutes).padStart(2, "0")}:${seconds}`;
 }
 
+function formatWatchDuration(totalSeconds) {
+  if (totalSeconds < 60) {
+    return `${totalSeconds} ${totalSeconds === 1 ? "second" : "seconds"}`;
+  }
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (!seconds) {
+    return `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  }
+
+  return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+}
+
 function formatThreshold(value) {
   return value >= 60 ? `${value / 60} hr` : `${value} min`;
 }
@@ -1096,6 +1110,10 @@ function openGentleShortcut(page) {
 }
 
 function renderEffectBadges() {
+  if (!selectedEffects) {
+    return;
+  }
+
   selectedEffects.innerHTML = "";
   orderedEffects().forEach((effect) => {
     const badge = document.createElement("span");
@@ -1107,9 +1125,9 @@ function renderEffectBadges() {
 function stageMessageText(stage) {
   return {
     1: "Monitoring quietly.",
-    2: "Time to check in.",
+    2: `You've been watching for ${formatWatchDuration(state.elapsedSeconds)}.`,
     3: "The feed is softening.",
-    4: "Stay or stop."
+    4: "Keep watching or take a break."
   }[stage];
 }
 
@@ -1156,7 +1174,7 @@ function syncReminderCard() {
   }
 
   reminderCard.classList.remove("hidden");
-  reminderText.textContent = `${formatThreshold(state.thresholds[2])} on ${currentProtectedAppLabel()}. Swipe down.`;
+  reminderText.textContent = `You've been watching for ${formatWatchDuration(state.elapsedSeconds)}.`;
   if (!state.reminderTimeout) {
     scheduleReminderAutoHide();
   }
@@ -1169,9 +1187,8 @@ function syncInterventionSheet() {
   }
 
   interventionSheet.classList.remove("hidden");
-  interventionTitle.textContent = "Keep scrolling?";
-  interventionText.textContent = "Hold 10s+ to stay. Let go to stop.";
-  renderEffectBadges();
+  interventionTitle.textContent = "Keep watching?";
+  interventionText.textContent = "Hold for 10 seconds to continue. Let go to stop.";
 }
 
 function syncUi() {
@@ -1558,13 +1575,15 @@ continueButton.addEventListener("pointerdown", (event) => {
   continueButton.addEventListener(eventName, stopContinue);
 });
 
-returnHomeButton.addEventListener("click", () => {
-  if (state.protectionRunning) {
-    stopProtectionSession("Returned home");
-    syncUsageStats();
-  }
-  setView("home");
-});
+if (returnHomeButton) {
+  returnHomeButton.addEventListener("click", () => {
+    if (state.protectionRunning) {
+      stopProtectionSession("Returned home");
+      syncUsageStats();
+    }
+    setView("home");
+  });
+}
 
 takeBreakButton.addEventListener("click", () => {
   if (state.protectionRunning) {
