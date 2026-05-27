@@ -1,142 +1,52 @@
-const FEED_ASSET_VERSION = "video-fix-2";
+const FEED_ASSET_VERSION = "video-fix-3";
 
-const FEED_ITEMS = [
-  {
-    file: `../video/app-feed-15/feed_001.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_001.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@island.minute",
-    caption: "A quick break can drift much longer than planned.",
-    likes: "2.4k",
-    comments: "318",
-    shares: "126"
-  },
-  {
-    file: `../video/app-feed-15/feed_002.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_002.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@subway.scenes",
-    caption: "One more swipe can quietly turn a short break into autopilot.",
-    likes: "8.6k",
-    comments: "742",
-    shares: "201"
-  },
-  {
-    file: `../video/app-feed-15/feed_003.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_003.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@sunset.loop",
-    caption: "A calm feed still makes it easy to keep going for one more clip.",
-    likes: "16.2k",
-    comments: "1.4k",
-    shares: "388"
-  },
-  {
-    file: `../video/app-feed-15/feed_004.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_004.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@city.pause",
-    caption: "Gentle Friction steps in before time disappears into the scroll.",
-    likes: "5.9k",
-    comments: "406",
-    shares: "173"
-  },
-  {
-    file: `../video/app-feed-15/feed_005.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_005.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@kitchen.frame",
-    caption: "Scrolling often starts small and keeps asking for a little more.",
-    likes: "12.8k",
-    comments: "927",
-    shares: "244"
-  },
-  {
-    file: `../video/app-feed-15/feed_006.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_006.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@peak.notes",
-    caption: "The longer we stay, the harder it feels to step back out.",
-    likes: "4.1k",
-    comments: "262",
-    shares: "91"
-  },
-  {
-    file: `../video/app-feed-15/feed_007.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_007.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@road.window",
-    caption: "A gentle cue works best before the feed fully takes over.",
-    likes: "9.7k",
-    comments: "681",
-    shares: "215"
-  },
-  {
-    file: `../video/app-feed-15/feed_008.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_008.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@screen.rhythm",
-    caption: "Smooth motion makes time feel lighter than it really is.",
-    likes: "21.3k",
-    comments: "1.9k",
-    shares: "504"
-  },
-  {
-    file: `../video/app-feed-15/feed_009.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_009.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@coast.views",
-    caption: "Short videos are easiest to stop before the habit locks in.",
-    likes: "6.4k",
-    comments: "534",
-    shares: "188"
-  },
-  {
-    file: `../video/app-feed-15/feed_010.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_010.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@studio.craft",
-    caption: "Soft friction adds a pause without taking control away.",
-    likes: "14.9k",
-    comments: "1.1k",
-    shares: "312"
-  },
-  {
-    file: `../video/app-feed-15/feed_011.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_011.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@city.frames",
-    caption: "A visible timer helps bring attention back to the moment.",
-    likes: "3.8k",
-    comments: "194",
-    shares: "77"
-  },
-  {
-    file: `../video/app-feed-15/feed_012.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_012.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@harbor.light",
-    caption: "A small check-in can be enough to break the automatic scroll.",
-    likes: "7.2k",
-    comments: "488",
-    shares: "149"
-  },
-  {
-    file: `../video/app-feed-15/feed_013.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_013.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@quiet.resort",
-    caption: "The goal is not to block you, only to help you notice sooner.",
-    likes: "18.6k",
-    comments: "1.5k",
-    shares: "427"
-  },
-  {
-    file: `../video/app-feed-15/feed_014.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_014.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@shore.daily",
-    caption: "Support feels better when it stays calm and easy to dismiss.",
-    likes: "10.4k",
-    comments: "823",
-    shares: "233"
-  },
-  {
-    file: `../video/app-feed-15/feed_015.mp4?v=${FEED_ASSET_VERSION}`,
-    poster: `../video/app-feed-15/feed_015.jpg?v=${FEED_ASSET_VERSION}`,
-    author: "@trail.overview",
-    caption: "A better ending starts with one intentional decision.",
-    likes: "5.1k",
-    comments: "301",
-    shares: "118"
-  }
+const FEED_CLIPS = [
+  { id: "001", author: "@island.minute", caption: "A quick break can drift much longer than planned.", likes: "2.4k", comments: "318", shares: "126" },
+  { id: "002", author: "@subway.scenes", caption: "One more swipe can quietly turn a short break into autopilot.", likes: "8.6k", comments: "742", shares: "201" },
+  { id: "003", author: "@sunset.loop", caption: "A calm feed still makes it easy to keep going for one more clip.", likes: "16.2k", comments: "1.4k", shares: "388" },
+  { id: "004", author: "@city.pause", caption: "Gentle Friction steps in before time disappears into the scroll.", likes: "5.9k", comments: "406", shares: "173" },
+  { id: "005", author: "@kitchen.frame", caption: "Scrolling often starts small and keeps asking for a little more.", likes: "12.8k", comments: "927", shares: "244" },
+  { id: "006", author: "@peak.notes", caption: "The longer we stay, the harder it feels to step back out.", likes: "4.1k", comments: "262", shares: "91" },
+  { id: "007", author: "@road.window", caption: "A gentle cue works best before the feed fully takes over.", likes: "9.7k", comments: "681", shares: "215" },
+  { id: "008", author: "@screen.rhythm", caption: "Smooth motion makes time feel lighter than it really is.", likes: "21.3k", comments: "1.9k", shares: "504" },
+  { id: "009", author: "@coast.views", caption: "Short videos are easiest to stop before the habit locks in.", likes: "6.4k", comments: "534", shares: "188" },
+  { id: "010", author: "@studio.craft", caption: "Soft friction adds a pause without taking control away.", likes: "14.9k", comments: "1.1k", shares: "312" },
+  { id: "011", author: "@city.frames", caption: "A visible timer helps bring attention back to the moment.", likes: "3.8k", comments: "194", shares: "77" },
+  { id: "012", author: "@harbor.light", caption: "A small check-in can be enough to break the automatic scroll.", likes: "7.2k", comments: "488", shares: "149" },
+  { id: "013", author: "@quiet.resort", caption: "The goal is not to block you, only to help you notice sooner.", likes: "18.6k", comments: "1.5k", shares: "427" },
+  { id: "014", author: "@shore.daily", caption: "Support feels better when it stays calm and easy to dismiss.", likes: "10.4k", comments: "823", shares: "233" },
+  { id: "015", author: "@trail.overview", caption: "A better ending starts with one intentional decision.", likes: "5.1k", comments: "301", shares: "118" },
+  { id: "016", author: "@window.route", caption: "A spare minute can become a full loop before you notice.", likes: "11.6k", comments: "864", shares: "245" },
+  { id: "017", author: "@museum.loop", caption: "Quiet clips still keep the thumb moving on their own.", likes: "7.9k", comments: "603", shares: "174" },
+  { id: "018", author: "@street.glow", caption: "Stopping is easiest right before the next autoplay begins.", likes: "19.7k", comments: "1.7k", shares: "462" },
+  { id: "019", author: "@late.train", caption: "The feed feels short because each clip asks for one more.", likes: "4.7k", comments: "288", shares: "102" },
+  { id: "020", author: "@quiet.steps", caption: "A small nudge can help turn attention back to your plan.", likes: "13.2k", comments: "941", shares: "251" },
+  { id: "021", author: "@studio.light", caption: "The hardest part is noticing when relaxing becomes drifting.", likes: "9.1k", comments: "657", shares: "198" },
+  { id: "022", author: "@lobby.notes", caption: "A gentle reminder works best before the scroll gets sticky.", likes: "6.8k", comments: "411", shares: "143" },
+  { id: "023", author: "@river.frame", caption: "The next clip always feels easier than leaving now.", likes: "15.4k", comments: "1.2k", shares: "336" },
+  { id: "024", author: "@after.class", caption: "Break time ends faster when the feed keeps deciding for you.", likes: "22.1k", comments: "2.1k", shares: "548" },
+  { id: "025", author: "@weekend.view", caption: "Protection should feel supportive, not like a punishment.", likes: "8.3k", comments: "592", shares: "166" },
+  { id: "026", author: "@city.night", caption: "A softer screen can reduce just enough pull to step away.", likes: "17.8k", comments: "1.3k", shares: "409" },
+  { id: "027", author: "@corner.table", caption: "A timer helps the moment feel real again.", likes: "5.6k", comments: "347", shares: "119" },
+  { id: "028", author: "@campus.pause", caption: "Short videos borrow attention a few seconds at a time.", likes: "12.1k", comments: "886", shares: "238" },
+  { id: "029", author: "@small.moments", caption: "Less friction to start means more friction to stop.", likes: "24.8k", comments: "2.4k", shares: "621" },
+  { id: "030", author: "@slow.frames", caption: "The best interruption is the one you barely resent.", likes: "10.8k", comments: "771", shares: "224" },
+  { id: "031", author: "@daily.pattern", caption: "A quick check-in can interrupt the habit before it settles.", likes: "3.9k", comments: "241", shares: "84" },
+  { id: "032", author: "@blue.hour", caption: "The scroll feels endless because the decision keeps getting delayed.", likes: "14.3k", comments: "1.1k", shares: "315" },
+  { id: "033", author: "@soft.daylight", caption: "A calmer feed makes the exit easier to choose.", likes: "18.1k", comments: "1.6k", shares: "433" },
+  { id: "034", author: "@northbound", caption: "You do not need a block to recover control.", likes: "6.2k", comments: "379", shares: "132" },
+  { id: "035", author: "@inside.look", caption: "One intentional pause can reset the whole session.", likes: "9.8k", comments: "708", shares: "207" }
 ];
+
+const FEED_ITEMS = FEED_CLIPS.map((item) => ({
+  file: `../video/app-feed-15/feed_${item.id}.mp4?v=${FEED_ASSET_VERSION}`,
+  poster: `../video/app-feed-15/feed_${item.id}.jpg?v=${FEED_ASSET_VERSION}`,
+  author: item.author,
+  caption: item.caption,
+  likes: item.likes,
+  comments: item.comments,
+  shares: item.shares
+}));
 
 const HOLD_DURATION_STAGE_4 = 10500;
 const REMINDER_DISMISS_THRESHOLD = 90;
