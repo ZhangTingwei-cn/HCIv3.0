@@ -1,7 +1,9 @@
+const FEED_ASSET_VERSION = "video-fix-2";
+
 const FEED_ITEMS = [
   {
-    file: "../video/app-feed-15/feed_001.mp4",
-    poster: "../video/app-feed-15/feed_001.jpg",
+    file: `../video/app-feed-15/feed_001.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_001.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@island.minute",
     caption: "A quick break can drift much longer than planned.",
     likes: "2.4k",
@@ -9,8 +11,8 @@ const FEED_ITEMS = [
     shares: "126"
   },
   {
-    file: "../video/app-feed-15/feed_002.mp4",
-    poster: "../video/app-feed-15/feed_002.jpg",
+    file: `../video/app-feed-15/feed_002.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_002.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@subway.scenes",
     caption: "One more swipe can quietly turn a short break into autopilot.",
     likes: "8.6k",
@@ -18,8 +20,8 @@ const FEED_ITEMS = [
     shares: "201"
   },
   {
-    file: "../video/app-feed-15/feed_003.mp4",
-    poster: "../video/app-feed-15/feed_003.jpg",
+    file: `../video/app-feed-15/feed_003.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_003.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@sunset.loop",
     caption: "A calm feed still makes it easy to keep going for one more clip.",
     likes: "16.2k",
@@ -27,8 +29,8 @@ const FEED_ITEMS = [
     shares: "388"
   },
   {
-    file: "../video/app-feed-15/feed_004.mp4",
-    poster: "../video/app-feed-15/feed_004.jpg",
+    file: `../video/app-feed-15/feed_004.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_004.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@city.pause",
     caption: "Gentle Friction steps in before time disappears into the scroll.",
     likes: "5.9k",
@@ -36,8 +38,8 @@ const FEED_ITEMS = [
     shares: "173"
   },
   {
-    file: "../video/app-feed-15/feed_005.mp4",
-    poster: "../video/app-feed-15/feed_005.jpg",
+    file: `../video/app-feed-15/feed_005.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_005.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@kitchen.frame",
     caption: "Scrolling often starts small and keeps asking for a little more.",
     likes: "12.8k",
@@ -45,8 +47,8 @@ const FEED_ITEMS = [
     shares: "244"
   },
   {
-    file: "../video/app-feed-15/feed_006.mp4",
-    poster: "../video/app-feed-15/feed_006.jpg",
+    file: `../video/app-feed-15/feed_006.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_006.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@peak.notes",
     caption: "The longer we stay, the harder it feels to step back out.",
     likes: "4.1k",
@@ -54,8 +56,8 @@ const FEED_ITEMS = [
     shares: "91"
   },
   {
-    file: "../video/app-feed-15/feed_007.mp4",
-    poster: "../video/app-feed-15/feed_007.jpg",
+    file: `../video/app-feed-15/feed_007.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_007.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@road.window",
     caption: "A gentle cue works best before the feed fully takes over.",
     likes: "9.7k",
@@ -63,8 +65,8 @@ const FEED_ITEMS = [
     shares: "215"
   },
   {
-    file: "../video/app-feed-15/feed_008.mp4",
-    poster: "../video/app-feed-15/feed_008.jpg",
+    file: `../video/app-feed-15/feed_008.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_008.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@screen.rhythm",
     caption: "Smooth motion makes time feel lighter than it really is.",
     likes: "21.3k",
@@ -72,8 +74,8 @@ const FEED_ITEMS = [
     shares: "504"
   },
   {
-    file: "../video/app-feed-15/feed_009.mp4",
-    poster: "../video/app-feed-15/feed_009.jpg",
+    file: `../video/app-feed-15/feed_009.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_009.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@coast.views",
     caption: "Short videos are easiest to stop before the habit locks in.",
     likes: "6.4k",
@@ -81,8 +83,8 @@ const FEED_ITEMS = [
     shares: "188"
   },
   {
-    file: "../video/app-feed-15/feed_010.mp4",
-    poster: "../video/app-feed-15/feed_010.jpg",
+    file: `../video/app-feed-15/feed_010.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_010.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@studio.craft",
     caption: "Soft friction adds a pause without taking control away.",
     likes: "14.9k",
@@ -90,8 +92,8 @@ const FEED_ITEMS = [
     shares: "312"
   },
   {
-    file: "../video/app-feed-15/feed_011.mp4",
-    poster: "../video/app-feed-15/feed_011.jpg",
+    file: `../video/app-feed-15/feed_011.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_011.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@city.frames",
     caption: "A visible timer helps bring attention back to the moment.",
     likes: "3.8k",
@@ -99,8 +101,8 @@ const FEED_ITEMS = [
     shares: "77"
   },
   {
-    file: "../video/app-feed-15/feed_012.mp4",
-    poster: "../video/app-feed-15/feed_012.jpg",
+    file: `../video/app-feed-15/feed_012.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_012.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@harbor.light",
     caption: "A small check-in can be enough to break the automatic scroll.",
     likes: "7.2k",
@@ -108,8 +110,8 @@ const FEED_ITEMS = [
     shares: "149"
   },
   {
-    file: "../video/app-feed-15/feed_013.mp4",
-    poster: "../video/app-feed-15/feed_013.jpg",
+    file: `../video/app-feed-15/feed_013.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_013.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@quiet.resort",
     caption: "The goal is not to block you, only to help you notice sooner.",
     likes: "18.6k",
@@ -117,8 +119,8 @@ const FEED_ITEMS = [
     shares: "427"
   },
   {
-    file: "../video/app-feed-15/feed_014.mp4",
-    poster: "../video/app-feed-15/feed_014.jpg",
+    file: `../video/app-feed-15/feed_014.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_014.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@shore.daily",
     caption: "Support feels better when it stays calm and easy to dismiss.",
     likes: "10.4k",
@@ -126,8 +128,8 @@ const FEED_ITEMS = [
     shares: "233"
   },
   {
-    file: "../video/app-feed-15/feed_015.mp4",
-    poster: "../video/app-feed-15/feed_015.jpg",
+    file: `../video/app-feed-15/feed_015.mp4?v=${FEED_ASSET_VERSION}`,
+    poster: `../video/app-feed-15/feed_015.jpg?v=${FEED_ASSET_VERSION}`,
     author: "@trail.overview",
     caption: "A better ending starts with one intentional decision.",
     likes: "5.1k",
