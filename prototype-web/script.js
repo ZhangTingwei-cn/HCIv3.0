@@ -402,17 +402,8 @@ function formatElapsed(totalSeconds) {
 }
 
 function formatWatchDuration(totalSeconds) {
-  if (totalSeconds < 60) {
-    return `${totalSeconds} ${totalSeconds === 1 ? "second" : "seconds"}`;
-  }
-
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  if (!seconds) {
-    return `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
-  }
-
-  return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  const seconds = Math.max(1, Math.round(totalSeconds));
+  return `${seconds} ${seconds === 1 ? "second" : "seconds"}`;
 }
 
 function formatThreshold(value) {
@@ -1126,7 +1117,7 @@ function stageMessageText(stage) {
   return {
     1: "Monitoring quietly.",
     2: `You've been watching for ${formatWatchDuration(state.elapsedSeconds)}.`,
-    3: "The feed is softening.",
+    3: `You've been watching for ${formatWatchDuration(state.elapsedSeconds)}.`,
     4: "Keep watching or take a break."
   }[stage];
 }
