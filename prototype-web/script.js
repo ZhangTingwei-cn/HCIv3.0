@@ -52,10 +52,11 @@ const FEED_ITEMS = FEED_CLIPS.map((item) => ({
   shares: item.shares
 }));
 
-const HOLD_DURATION_STAGE_4 = 20000;
-const BREAK_COOLDOWN_MS = 15 * 60 * 1000;
+const APP_TIME_MULTIPLIER = 3;
+const HOLD_DURATION_STAGE_4 = 20000 / APP_TIME_MULTIPLIER;
+const BREAK_COOLDOWN_MS = (15 * 60 * 1000) / APP_TIME_MULTIPLIER;
 const REMINDER_DISMISS_THRESHOLD = 90;
-const REMINDER_AUTO_HIDE_MS = 5000;
+const REMINDER_AUTO_HIDE_MS = 5000 / APP_TIME_MULTIPLIER;
 const VIDEO_SWIPE_THRESHOLD = 56;
 const SETTINGS_VERSION = 2;
 const DEMO_MODE = new URLSearchParams(window.location.search).has("demo");
@@ -613,12 +614,16 @@ function currentProtectedAppLabel() {
   return appIds.length === 1 ? firstName : `${firstName} + ${appIds.length - 1} apps`;
 }
 
+function appScaledSecondsFromMs(durationMs) {
+  return Math.max(1, Math.round((durationMs * APP_TIME_MULTIPLIER) / 1000));
+}
+
 function activeProtectionSeconds() {
   if (!state.protectionRunning || !state.protectionStartedAt) {
     return 0;
   }
 
-  return Math.max(1, Math.round((Date.now() - state.protectionStartedAt) / 1000));
+  return appScaledSecondsFromMs(Date.now() - state.protectionStartedAt);
 }
 
 function totalProtectedSeconds() {
@@ -639,7 +644,7 @@ function stopProtectionSession(result = "Paused") {
   state.usageData.sessions.unshift({
     startedAt: state.protectionStartedAt,
     endedAt,
-    durationSeconds: Math.max(1, Math.round((endedAt - state.protectionStartedAt) / 1000)),
+    durationSeconds: appScaledSecondsFromMs(endedAt - state.protectionStartedAt),
     result,
     app: state.protectionAppLabel || currentProtectedAppLabel()
   });
@@ -839,6 +844,30 @@ function currentRequiredSwipes() {
 function resetSwipeBuild() {
   state.swipeStepsTowardNext = 0;
   state.swipeFeedbackFlash = 0;
+}
+
+function safelySetPointerCapture(target, pointerId) {
+  if (!target || typeof target.setPointerCapture !== "function") {
+    return;
+  }
+
+  try {
+    target.setPointerCapture(pointerId);
+  } catch {}
+}
+
+function safelyReleasePointerCapture(target, pointerId) {
+  if (
+    !target ||
+    typeof target.releasePointerCapture !== "function" ||
+    (typeof target.hasPointerCapture === "function" && !target.hasPointerCapture(pointerId))
+  ) {
+    return;
+  }
+
+  try {
+    target.releasePointerCapture(pointerId);
+  } catch {}
 }
 
 function pulseSwipeFeedback() {
@@ -1544,7 +1573,7 @@ function startReminderDrag(event) {
   }
 
   state.reminderDragStartY = event.clientY;
-  reminderCard.setPointerCapture(event.pointerId);
+  safelySetPointerCapture(reminderCard, event.pointerId);
 }
 
 function moveReminderDrag(event) {
@@ -1561,7 +1590,7 @@ function endReminderDrag(event) {
     return;
   }
 
-  reminderCard.releasePointerCapture(event.pointerId);
+  safelyReleasePointerCapture(reminderCard, event.pointerId);
 
   if (state.reminderOffsetY >= REMINDER_DISMISS_THRESHOLD) {
     dismissReminder();
@@ -1626,7 +1655,7 @@ function onTrackPointerDown(event) {
 
   state.trackDragStartY = event.clientY;
   state.trackDragDeltaY = 0;
-  feedViewport.setPointerCapture(event.pointerId);
+  safelySetPointerCapture(feedViewport, event.pointerId);
 }
 
 function onTrackPointerMove(event) {
@@ -1643,7 +1672,7 @@ function onTrackPointerUp(event) {
     return;
   }
 
-  feedViewport.releasePointerCapture(event.pointerId);
+  safelyReleasePointerCapture(feedViewport, event.pointerId);
   const deltaY = state.trackDragDeltaY;
   state.trackDragStartY = null;
   state.trackDragDeltaY = 0;
@@ -1900,7 +1929,7 @@ window.setInterval(() => {
   updateStatusTime();
 
   if (state.activeView === "pulse" && isPulseProtected() && state.currentStage < 4 && !hasActiveCooldown()) {
-    state.elapsedCarryMs += deltaMs;
+    state.elapsedCarryMs += deltaMs * APP_TIME_MULTIPLIER;
     if (state.elapsedCarryMs >= 1000) {
       const wholeSeconds = Math.floor(state.elapsedCarryMs / 1000);
       state.elapsedSeconds += wholeSeconds;
