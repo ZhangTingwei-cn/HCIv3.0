@@ -23,8 +23,8 @@
               <div class="wallpaper wallpaper-c"></div>
 
               <div class="home-hero">
-                <p>Thursday</p>
-                <strong>22 May</strong>
+                <p id="homeWeekday">Thursday</p>
+                <strong id="homeDate">22 May</strong>
               </div>
 
               <div class="home-grid home-grid-minimal">
@@ -301,6 +301,7 @@
                       <video
                         id="previewVideo"
                         src="../video/app-feed-15/feed_010.mp4"
+                        poster="../video/app-feed-15/feed_010.jpg"
                         muted
                         loop
                         playsinline
@@ -427,9 +428,9 @@
                 </div>
 
                 <div class="side-actions" aria-hidden="true">
-                  <span class="side-action">2.4k</span>
-                  <span class="side-action">318</span>
-                  <span class="side-action">Share</span>
+                  <span class="side-action" id="feedLikes">2.4k</span>
+                  <span class="side-action" id="feedComments">318</span>
+                  <span class="side-action" id="feedShares">126</span>
                 </div>
               </div>
 
@@ -461,6 +462,6 @@
       </section>
     </main>
 
-    <script src="./script.js?v=feed-15-1"></script>
+    <script src="./script.js?v=video-fix-1"></script>
   </body>
 </html>

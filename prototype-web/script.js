@@ -1,78 +1,138 @@
 const FEED_ITEMS = [
   {
     file: "../video/app-feed-15/feed_001.mp4",
+    poster: "../video/app-feed-15/feed_001.jpg",
     author: "@island.minute",
-    caption: "A quick break can drift much longer than planned."
+    caption: "A quick break can drift much longer than planned.",
+    likes: "2.4k",
+    comments: "318",
+    shares: "126"
   },
   {
     file: "../video/app-feed-15/feed_002.mp4",
+    poster: "../video/app-feed-15/feed_002.jpg",
     author: "@subway.scenes",
-    caption: "One more swipe can quietly turn a short break into autopilot."
+    caption: "One more swipe can quietly turn a short break into autopilot.",
+    likes: "8.6k",
+    comments: "742",
+    shares: "201"
   },
   {
     file: "../video/app-feed-15/feed_003.mp4",
+    poster: "../video/app-feed-15/feed_003.jpg",
     author: "@sunset.loop",
-    caption: "A calm feed still makes it easy to keep going for one more clip."
+    caption: "A calm feed still makes it easy to keep going for one more clip.",
+    likes: "16.2k",
+    comments: "1.4k",
+    shares: "388"
   },
   {
     file: "../video/app-feed-15/feed_004.mp4",
+    poster: "../video/app-feed-15/feed_004.jpg",
     author: "@city.pause",
-    caption: "Gentle Friction steps in before time disappears into the scroll."
+    caption: "Gentle Friction steps in before time disappears into the scroll.",
+    likes: "5.9k",
+    comments: "406",
+    shares: "173"
   },
   {
     file: "../video/app-feed-15/feed_005.mp4",
+    poster: "../video/app-feed-15/feed_005.jpg",
     author: "@kitchen.frame",
-    caption: "Scrolling often starts small and keeps asking for a little more."
+    caption: "Scrolling often starts small and keeps asking for a little more.",
+    likes: "12.8k",
+    comments: "927",
+    shares: "244"
   },
   {
     file: "../video/app-feed-15/feed_006.mp4",
+    poster: "../video/app-feed-15/feed_006.jpg",
     author: "@peak.notes",
-    caption: "The longer we stay, the harder it feels to step back out."
+    caption: "The longer we stay, the harder it feels to step back out.",
+    likes: "4.1k",
+    comments: "262",
+    shares: "91"
   },
   {
     file: "../video/app-feed-15/feed_007.mp4",
+    poster: "../video/app-feed-15/feed_007.jpg",
     author: "@road.window",
-    caption: "A gentle cue works best before the feed fully takes over."
+    caption: "A gentle cue works best before the feed fully takes over.",
+    likes: "9.7k",
+    comments: "681",
+    shares: "215"
   },
   {
     file: "../video/app-feed-15/feed_008.mp4",
+    poster: "../video/app-feed-15/feed_008.jpg",
     author: "@screen.rhythm",
-    caption: "Smooth motion makes time feel lighter than it really is."
+    caption: "Smooth motion makes time feel lighter than it really is.",
+    likes: "21.3k",
+    comments: "1.9k",
+    shares: "504"
   },
   {
     file: "../video/app-feed-15/feed_009.mp4",
+    poster: "../video/app-feed-15/feed_009.jpg",
     author: "@coast.views",
-    caption: "Short videos are easiest to stop before the habit locks in."
+    caption: "Short videos are easiest to stop before the habit locks in.",
+    likes: "6.4k",
+    comments: "534",
+    shares: "188"
   },
   {
     file: "../video/app-feed-15/feed_010.mp4",
+    poster: "../video/app-feed-15/feed_010.jpg",
     author: "@studio.craft",
-    caption: "Soft friction adds a pause without taking control away."
+    caption: "Soft friction adds a pause without taking control away.",
+    likes: "14.9k",
+    comments: "1.1k",
+    shares: "312"
   },
   {
     file: "../video/app-feed-15/feed_011.mp4",
+    poster: "../video/app-feed-15/feed_011.jpg",
     author: "@city.frames",
-    caption: "A visible timer helps bring attention back to the moment."
+    caption: "A visible timer helps bring attention back to the moment.",
+    likes: "3.8k",
+    comments: "194",
+    shares: "77"
   },
   {
     file: "../video/app-feed-15/feed_012.mp4",
+    poster: "../video/app-feed-15/feed_012.jpg",
     author: "@harbor.light",
-    caption: "A small check-in can be enough to break the automatic scroll."
+    caption: "A small check-in can be enough to break the automatic scroll.",
+    likes: "7.2k",
+    comments: "488",
+    shares: "149"
   },
   {
     file: "../video/app-feed-15/feed_013.mp4",
+    poster: "../video/app-feed-15/feed_013.jpg",
     author: "@quiet.resort",
-    caption: "The goal is not to block you, only to help you notice sooner."
+    caption: "The goal is not to block you, only to help you notice sooner.",
+    likes: "18.6k",
+    comments: "1.5k",
+    shares: "427"
   },
   {
     file: "../video/app-feed-15/feed_014.mp4",
+    poster: "../video/app-feed-15/feed_014.jpg",
     author: "@shore.daily",
-    caption: "Support feels better when it stays calm and easy to dismiss."
+    caption: "Support feels better when it stays calm and easy to dismiss.",
+    likes: "10.4k",
+    comments: "823",
+    shares: "233"
   },
   {
     file: "../video/app-feed-15/feed_015.mp4",
+    poster: "../video/app-feed-15/feed_015.jpg",
     author: "@trail.overview",
-    caption: "A better ending starts with one intentional decision."
+    caption: "A better ending starts with one intentional decision.",
+    likes: "5.1k",
+    comments: "301",
+    shares: "118"
   }
 ];
 
@@ -311,6 +371,8 @@ const state = {
 };
 
 const statusTime = document.getElementById("statusTime");
+const homeWeekday = document.getElementById("homeWeekday");
+const homeDate = document.getElementById("homeDate");
 const screen = document.querySelector(".screen");
 const appScroll = document.querySelector(".app-scroll");
 const views = [...document.querySelectorAll(".view")];
@@ -387,6 +449,9 @@ const returnHomeButton = document.getElementById("returnHomeButton");
 const pulseView = document.querySelector("[data-view='pulse']");
 const feedViewport = document.getElementById("feedViewport");
 const feedTrack = document.getElementById("feedTrack");
+const feedLikes = document.getElementById("feedLikes");
+const feedComments = document.getElementById("feedComments");
+const feedShares = document.getElementById("feedShares");
 
 function formatClock(date) {
   const hours = date.getHours();
@@ -394,13 +459,28 @@ function formatClock(date) {
   return `${hours}:${minutes}`;
 }
 
-function updateStatusTime() {
-  if (!statusTime) {
-    return;
-  }
+function formatHomeWeekday(date) {
+  return date.toLocaleDateString("en-GB", { weekday: "long" });
+}
 
+function formatHomeDate(date) {
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long"
+  });
+}
+
+function updateStatusTime() {
   const now = new Date();
-  statusTime.textContent = formatClock(now);
+  if (statusTime) {
+    statusTime.textContent = formatClock(now);
+  }
+  if (homeWeekday) {
+    homeWeekday.textContent = formatHomeWeekday(now);
+  }
+  if (homeDate) {
+    homeDate.textContent = formatHomeDate(now);
+  }
 }
 
 function formatElapsed(totalSeconds) {
@@ -768,13 +848,43 @@ function clearReminderTimer() {
   state.reminderTimeout = 0;
 }
 
+function syncFeedEngagement() {
+  const item = FEED_ITEMS[logicalIndex()];
+  if (!item) {
+    return;
+  }
+
+  if (feedLikes) {
+    feedLikes.textContent = item.likes;
+  }
+  if (feedComments) {
+    feedComments.textContent = item.comments;
+  }
+  if (feedShares) {
+    feedShares.textContent = item.shares;
+  }
+}
+
+function primeNearbyFeedVideos() {
+  const videos = [...feedTrack.querySelectorAll("video")];
+  videos.forEach((video, index) => {
+    const distance = Math.abs(index - state.currentVideoIndex);
+    if (distance <= 2 && video.dataset.src && video.getAttribute("src") !== video.dataset.src) {
+      video.setAttribute("src", video.dataset.src);
+      video.load();
+    }
+
+    video.preload = distance <= 1 ? "metadata" : "none";
+  });
+}
+
 function buildFeed() {
   const repeated = [...FEED_ITEMS, ...FEED_ITEMS, ...FEED_ITEMS];
   feedTrack.innerHTML = repeated
     .map(
       (item) => `
         <article class="feed-slide">
-          <video src="${item.file}" muted loop playsinline preload="metadata"></video>
+          <video data-src="${item.file}" poster="${item.poster}" muted loop playsinline preload="none"></video>
           <div class="slide-overlay"></div>
           <div class="slide-copy">
             <p class="feed-author">${item.author}</p>
@@ -813,13 +923,15 @@ function syncCurrentSlides() {
   [...feedTrack.children].forEach((slide, index) => {
     slide.classList.toggle("is-current", index === state.currentVideoIndex);
   });
+  syncFeedEngagement();
+  primeNearbyFeedVideos();
 }
 
 function playCurrentVideo() {
   const slides = [...feedTrack.querySelectorAll("video")];
   slides.forEach((video, index) => {
     if (index === state.currentVideoIndex) {
-      if (video.currentTime < 0.18) {
+      if (video.readyState >= 1 && video.currentTime < 0.18) {
         video.currentTime = 0.18;
       }
       video.play().catch(() => {});
@@ -1630,6 +1742,11 @@ feedTrack.addEventListener(
 
     if (video.currentTime < 0.18) {
       video.currentTime = 0.18;
+    }
+
+    const currentVideo = feedTrack.querySelector(".feed-slide.is-current video");
+    if (currentVideo === video) {
+      video.play().catch(() => {});
     }
   },
   true
