@@ -49,6 +49,7 @@ const FEED_ITEMS = FEED_CLIPS.map((item) => ({
 }));
 
 const HOLD_DURATION_STAGE_4 = 20000;
+const BREAK_COOLDOWN_MS = 15 * 60 * 1000;
 const REMINDER_DISMISS_THRESHOLD = 90;
 const REMINDER_AUTO_HIDE_MS = 5000;
 const VIDEO_SWIPE_THRESHOLD = 56;
@@ -214,6 +215,7 @@ function defaultUsageData() {
   return {
     appOpenCount: 0,
     protectionStartCount: 0,
+    cooldownUntil: 0,
     sessions: []
   };
 }
@@ -229,6 +231,7 @@ function loadUsageData() {
     return {
       appOpenCount: Number(parsed.appOpenCount) || 0,
       protectionStartCount: Number(parsed.protectionStartCount) || 0,
+      cooldownUntil: Math.max(0, Number(parsed.cooldownUntil) || 0),
       sessions: Array.isArray(parsed.sessions)
         ? parsed.sessions
             .filter((session) => session && typeof session === "object")
@@ -318,7 +321,6 @@ const startProtectionButton = document.getElementById("startProtectionButton");
 const homeProtectionOrb = document.querySelector(".protection-orb");
 const homeProtectedKicker = document.getElementById("homeProtectedKicker");
 const homeProtectedValue = document.getElementById("homeProtectedValue");
-const homeProtectedCopy = document.getElementById("homeProtectedCopy");
 const homePausesValue = document.getElementById("homePausesValue");
 const homePausesCopy = document.getElementById("homePausesCopy");
 const settingsAppStatus = document.getElementById("settingsAppStatus");
@@ -362,6 +364,10 @@ const selectedEffects = document.getElementById("selectedEffects");
 const continueButton = document.getElementById("continueButton");
 const takeBreakButton = document.getElementById("takeBreakButton");
 const holdProgress = document.getElementById("holdProgress");
+const cooldownSheet = document.getElementById("cooldownSheet");
+const cooldownTitle = document.getElementById("cooldownTitle");
+const cooldownCopy = document.getElementById("cooldownCopy");
+const cooldownHomeButton = document.getElementById("cooldownHomeButton");
 const returnHomeButton = document.getElementById("returnHomeButton");
 const pulseView = document.querySelector("[data-view='pulse']");
 const feedViewport = document.getElementById("feedViewport");
@@ -514,6 +520,7 @@ function saveUsageData() {
     JSON.stringify({
       appOpenCount: state.usageData.appOpenCount,
       protectionStartCount: state.usageData.protectionStartCount,
+      cooldownUntil: state.usageData.cooldownUntil,
       sessions: state.usageData.sessions.slice(0, 30)
     })
   );
@@ -529,6 +536,42 @@ function enabledAppIds() {
 
 function hasEnabledApps() {
   return enabledAppIds().length > 0;
+}
+
+function cooldownRemainingMs() {
+  return Math.max(0, state.usageData.cooldownUntil - Date.now());
+}
+
+function hasActiveCooldown() {
+  return cooldownRemainingMs() > 0;
+}
+
+function clearCooldownIfExpired() {
+  if (!state.usageData.cooldownUntil || cooldownRemainingMs() > 0) {
+    return false;
+  }
+
+  state.usageData.cooldownUntil = 0;
+  saveUsageData();
+  return true;
+}
+
+function startBreakCooldown() {
+  state.usageData.cooldownUntil = Date.now() + BREAK_COOLDOWN_MS;
+  saveUsageData();
+}
+
+function formatCooldownRemaining(totalMs) {
+  const totalSeconds = Math.max(0, Math.ceil(totalMs / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${String(minutes).padStart(2, "0")}m`;
+  }
+
+  return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
 }
 
 function isPulseProtected() {
@@ -583,6 +626,11 @@ function stopProtectionSession(result = "Paused") {
 }
 
 function startProtectionSession() {
+  if (hasActiveCooldown()) {
+    openPulseAtStage(1);
+    return;
+  }
+
   if (!hasEnabledApps()) {
     openGentleShortcut("settings");
     return;
@@ -611,7 +659,9 @@ function syncUsageStats() {
   state.lastUsageSecond = state.protectionRunning ? activeProtectionSeconds() : -1;
 
   if (startProtectionButton) {
-    if (!hasEnabledApps()) {
+    if (hasActiveCooldown()) {
+      startProtectionButton.textContent = "Break active";
+    } else if (!hasEnabledApps()) {
       startProtectionButton.textContent = "Start protection";
     } else if (state.protectionRunning) {
       startProtectionButton.textContent = "Stop protection";
@@ -634,9 +684,6 @@ function syncUsageStats() {
   }
   if (homeProtectedKicker) {
     homeProtectedKicker.textContent = state.protectionRunning ? "Protection live" : "Protected time";
-  }
-  if (homeProtectedCopy) {
-    homeProtectedCopy.textContent = state.protectionRunning ? "Running now" : "Saved with Gentle Friction";
   }
   if (settingsAppStatus) {
     settingsAppStatus.textContent = state.monitoredApps.has("pulse") ? "Protection on" : "Protection off";
@@ -878,6 +925,12 @@ function syncCurrentSlides() {
 
 function playCurrentVideo() {
   const slides = [...feedTrack.querySelectorAll("video")];
+
+  if (hasActiveCooldown()) {
+    slides.forEach((video) => video.pause());
+    return;
+  }
+
   slides.forEach((video, index) => {
     if (index === state.currentVideoIndex) {
       if (video.readyState >= 1 && video.currentTime < 0.18) {
@@ -1100,6 +1153,15 @@ function openPulseAtStage(stage) {
   setView("pulse");
   state.stage2Dismissed = false;
 
+  if (hasActiveCooldown()) {
+    state.elapsedSeconds = 0;
+    resetElapsedClock();
+    clearReminderAndOffset();
+    resetHold();
+    syncUi();
+    return;
+  }
+
   if (!isPulseProtected()) {
     state.elapsedSeconds = 0;
     resetElapsedClock();
@@ -1190,7 +1252,7 @@ function scheduleReminderAutoHide() {
 }
 
 function syncReminderCard() {
-  if (!isPulseProtected() || state.currentStage !== 2 || state.stage2Dismissed) {
+  if (hasActiveCooldown() || !isPulseProtected() || state.currentStage !== 2 || state.stage2Dismissed) {
     reminderCard.classList.add("hidden");
     clearReminderAndOffset();
     return;
@@ -1204,7 +1266,7 @@ function syncReminderCard() {
 }
 
 function syncInterventionSheet() {
-  if (!isPulseProtected() || state.currentStage !== 4) {
+  if (hasActiveCooldown() || !isPulseProtected() || state.currentStage !== 4) {
     interventionSheet.classList.add("hidden");
     if (interruptPanel) {
       interruptPanel.classList.remove("is-holding");
@@ -1215,6 +1277,30 @@ function syncInterventionSheet() {
   interventionSheet.classList.remove("hidden");
   interventionTitle.textContent = "Keep watching?";
   interventionText.textContent = "Return to the life waiting for you.";
+}
+
+function syncCooldownSheet() {
+  const cooldownActive = hasActiveCooldown();
+
+  pulseView.classList.toggle("is-cooldown", cooldownActive);
+
+  if (!cooldownSheet) {
+    return;
+  }
+
+  if (!cooldownActive) {
+    cooldownSheet.classList.add("hidden");
+    return;
+  }
+
+  cooldownSheet.classList.remove("hidden");
+
+  if (cooldownTitle) {
+    cooldownTitle.textContent = `Come back in ${formatCooldownRemaining(cooldownRemainingMs())}`;
+  }
+  if (cooldownCopy) {
+    cooldownCopy.textContent = "TikTok is paused so your break can stay a break.";
+  }
 }
 
 function syncUi() {
@@ -1230,17 +1316,20 @@ function syncUi() {
     clearReminderAndOffset();
   }
 
+  const cooldownActive = hasActiveCooldown();
+
   demoTimer.textContent = formatElapsed(state.elapsedSeconds);
-  stagePill.textContent = isPulseProtected() ? stageLabel(state.currentStage) : "Protection off";
-  stagePill.classList.toggle("hidden", !isPulseProtected());
-  nextStageButton.classList.toggle("hidden", !isPulseProtected());
-  demoTimer.classList.toggle("hidden", !isPulseProtected());
-  stageMessage.textContent = isPulseProtected() ? stageMessageText(state.currentStage) : "";
-  stageMessage.classList.toggle("hidden", !isPulseProtected() || state.currentStage === 1);
+  stagePill.textContent = cooldownActive ? "Break active" : (isPulseProtected() ? stageLabel(state.currentStage) : "Protection off");
+  stagePill.classList.toggle("hidden", !(cooldownActive || isPulseProtected()));
+  nextStageButton.classList.toggle("hidden", !isPulseProtected() || cooldownActive);
+  demoTimer.classList.toggle("hidden", !isPulseProtected() || cooldownActive);
+  stageMessage.textContent = cooldownActive ? "" : (isPulseProtected() ? stageMessageText(state.currentStage) : "");
+  stageMessage.classList.toggle("hidden", cooldownActive || !isPulseProtected() || state.currentStage === 1);
   applyStageClasses();
   syncPulseFriction();
   syncReminderCard();
   syncInterventionSheet();
+  syncCooldownSheet();
 }
 
 function resetHold() {
@@ -1380,7 +1469,7 @@ function endReminderDrag(event) {
 }
 
 function commitTrackMove(direction) {
-  if (state.trackAnimating || state.currentStage === 4) {
+  if (state.trackAnimating || state.currentStage === 4 || hasActiveCooldown()) {
     return;
   }
 
@@ -1398,7 +1487,7 @@ function commitTrackMove(direction) {
 }
 
 function onTrackPointerDown(event) {
-  if (state.currentStage === 4 || state.trackAnimating) {
+  if (state.currentStage === 4 || state.trackAnimating || hasActiveCooldown()) {
     return;
   }
 
@@ -1408,7 +1497,7 @@ function onTrackPointerDown(event) {
 }
 
 function onTrackPointerMove(event) {
-  if (state.trackDragStartY === null || state.currentStage === 4 || state.trackAnimating) {
+  if (state.trackDragStartY === null || state.currentStage === 4 || state.trackAnimating || hasActiveCooldown()) {
     return;
   }
 
@@ -1620,10 +1709,18 @@ if (returnHomeButton) {
 takeBreakButton.addEventListener("click", () => {
   if (state.protectionRunning) {
     stopProtectionSession("Took a break");
-    syncUsageStats();
   }
+  startBreakCooldown();
+  syncUsageStats();
+  syncUi();
   setView("home");
 });
+
+if (cooldownHomeButton) {
+  cooldownHomeButton.addEventListener("click", () => {
+    setView("home");
+  });
+}
 
 window.addEventListener("beforeunload", () => {
   if (state.protectionRunning) {
@@ -1634,7 +1731,7 @@ window.addEventListener("beforeunload", () => {
 window.addEventListener(
   "wheel",
   (event) => {
-    if (state.activeView !== "pulse" || state.currentStage === 4 || state.trackAnimating) {
+    if (state.activeView !== "pulse" || state.currentStage === 4 || state.trackAnimating || hasActiveCooldown()) {
       return;
     }
 
@@ -1649,7 +1746,7 @@ window.addEventListener(
 );
 
 window.addEventListener("keydown", (event) => {
-  if (state.activeView !== "pulse" || state.currentStage === 4 || state.trackAnimating) {
+  if (state.activeView !== "pulse" || state.currentStage === 4 || state.trackAnimating || hasActiveCooldown()) {
     return;
   }
 
@@ -1669,12 +1766,21 @@ window.setInterval(() => {
 
   updateStatusTime();
 
-  if (state.activeView === "pulse" && isPulseProtected() && state.currentStage < 4) {
+  if (state.activeView === "pulse" && isPulseProtected() && state.currentStage < 4 && !hasActiveCooldown()) {
     state.elapsedCarryMs += deltaMs;
     if (state.elapsedCarryMs >= 1000) {
       const wholeSeconds = Math.floor(state.elapsedCarryMs / 1000);
       state.elapsedSeconds += wholeSeconds;
       state.elapsedCarryMs -= wholeSeconds * 1000;
+      syncUi();
+    }
+  }
+
+  if (state.usageData.cooldownUntil) {
+    if (clearCooldownIfExpired()) {
+      syncUsageStats();
+      syncUi();
+    } else if (state.activeView === "pulse") {
       syncUi();
     }
   }

@@ -10,7 +10,7 @@
     <title>Gentle Friction</title>
     <link rel="manifest" href="../manifest.webmanifest" />
     <link rel="apple-touch-icon" href="../Logo.png" />
-    <link rel="stylesheet" href="./style.css?v=home-orb-2" />
+    <link rel="stylesheet" href="./style.css?v=tiktok-rail-1" />
   </head>
   <body>
     <main class="stage">
@@ -111,7 +111,6 @@
                       <span class="protection-orb-core">
                         <span class="protection-orb-kicker" id="homeProtectedKicker">Protected time</span>
                         <strong id="homeProtectedValue">0m 00s</strong>
-                        <small id="homeProtectedCopy">With Gentle Friction</small>
                       </span>
                     </button>
 
@@ -436,9 +435,40 @@
                 </div>
 
                 <div class="side-actions" aria-hidden="true">
-                  <span class="side-action" id="feedLikes">2.4k</span>
-                  <span class="side-action" id="feedComments">318</span>
-                  <span class="side-action" id="feedShares">126</span>
+                  <div class="side-profile">
+                    <span class="side-avatar">
+                      <span class="side-avatar-core"></span>
+                    </span>
+                    <span class="side-profile-plus">+</span>
+                  </div>
+
+                  <div class="side-action">
+                    <span class="side-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+                      </svg>
+                    </span>
+                    <strong id="feedLikes">2.4k</strong>
+                  </div>
+
+                  <div class="side-action">
+                    <span class="side-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M21 11.5c0 4.14-4.03 7.5-9 7.5-1.03 0-2.02-.14-2.93-.4L4 20l1.63-3.26C4.62 15.46 4 13.55 4 11.5 4 7.36 8.03 4 13 4s8 3.36 8 7.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    </span>
+                    <strong id="feedComments">318</strong>
+                  </div>
+
+                  <div class="side-action">
+                    <span class="side-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M14 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <path d="M4 12h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    </span>
+                    <strong id="feedShares">126</strong>
+                  </div>
                 </div>
               </div>
 
@@ -457,6 +487,15 @@
                   </div>
                 </div>
               </section>
+
+              <section class="cooldown-overlay hidden" id="cooldownSheet">
+                <div class="cooldown-panel">
+                  <p class="cooldown-kicker">Break active</p>
+                  <h3 id="cooldownTitle">Come back in 15m 00s</h3>
+                  <p id="cooldownCopy">TikTok is paused so your break can stay a break.</p>
+                  <button class="cooldown-button" id="cooldownHomeButton" type="button">Back home</button>
+                </div>
+              </section>
             </section>
 
             <div class="home-indicator" aria-hidden="true"></div>
@@ -465,6 +504,6 @@
       </section>
     </main>
 
-    <script src="./script.js?v=home-orb-2"></script>
+    <script src="./script.js?v=tiktok-rail-1"></script>
   </body>
 </html>
