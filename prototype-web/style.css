@@ -2166,7 +2166,6 @@ button {
 
 .mini-badge,
 .floating-pill,
-.side-action,
 .slider-value {
   display: inline-flex;
   align-items: center;
@@ -3101,6 +3100,8 @@ button {
   justify-items: center;
   gap: 6px;
   min-width: 62px;
+  background: transparent;
+  box-shadow: none;
 }
 
 .side-icon {
@@ -3110,13 +3111,13 @@ button {
   place-items: center;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.14), transparent 32%),
-    rgba(10, 14, 20, 0.36);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+    radial-gradient(circle at 28% 18%, rgba(255, 255, 255, 0.08), transparent 30%),
+    linear-gradient(180deg, rgba(44, 51, 64, 0.9), rgba(26, 31, 40, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow:
-    0 14px 24px rgba(8, 12, 20, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(18px);
+    0 14px 24px rgba(8, 12, 20, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
 }
 
 .side-icon svg {
