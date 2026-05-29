@@ -10,7 +10,7 @@
     <title>Gentle Friction</title>
     <link rel="manifest" href="../manifest.webmanifest" />
     <link rel="apple-touch-icon" href="../Logo.png" />
-    <link rel="stylesheet" href="./style.css?v=swipe-build-1" />
+    <link rel="stylesheet" href="./style.css?v=friction-clean-1" />
   </head>
   <body>
     <main class="stage">
@@ -273,7 +273,7 @@
                         <p class="overline">Effects</p>
                         <h3>Friction effects</h3>
                       </div>
-                      <span class="mini-badge" id="effectsCount">4</span>
+                      <span class="mini-badge" id="effectsCount">3</span>
                     </div>
 
                     <div class="effect-grid">
@@ -295,11 +295,6 @@
                         <p>Add a calm overlay</p>
                       </button>
 
-                      <button class="effect-card is-selected" data-effect="swipe" type="button">
-                        <span class="effect-check" aria-hidden="true"></span>
-                        <strong>Swipe build</strong>
-                        <p>More swipes over time</p>
-                      </button>
                     </div>
                   </section>
 
@@ -324,13 +319,9 @@
                       ></video>
                       <div class="preview-overlay"></div>
                       <div class="preview-tint"></div>
-                      <div class="preview-swipe-badge" id="previewSwipeBadge">
-                        <span>Stage 3</span>
-                        <strong id="previewSwipeValue">1 swipe</strong>
-                      </div>
                       <div class="preview-caption">
                         <p>@studio.craft</p>
-                        <span>Visual friction builds while swipe effort rises from one to ten.</span>
+                        <span>Visual friction builds gradually before the choice screen appears.</span>
                       </div>
                     </div>
                   </section>
@@ -444,11 +435,6 @@
                     <span class="floating-pill demo-only" id="demoTimer">00:00</span>
                   </div>
                   <p class="stage-message hidden" id="stageMessage">Monitoring quietly.</p>
-                  <div class="swipe-friction-chip hidden" id="swipeFrictionChip">
-                    <span class="swipe-friction-kicker">Next clip</span>
-                    <strong id="swipeFrictionValue">1 swipe</strong>
-                    <small id="swipeFrictionProgress">0 / 1</small>
-                  </div>
                 </div>
 
                 <div class="side-actions" aria-hidden="true">
@@ -521,6 +507,6 @@
       </section>
     </main>
 
-    <script src="./script.js?v=swipe-build-2"></script>
+    <script src="./script.js?v=friction-clean-1"></script>
   </body>
 </html>

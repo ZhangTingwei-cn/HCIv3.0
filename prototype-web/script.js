@@ -179,7 +179,7 @@ function defaultSettings() {
     settingsVersion: SETTINGS_VERSION,
     monitoredApps: ["pulse"],
     thresholds: { 2: 5, 3: 10, 4: 15 },
-    effects: ["blur", "fade", "tint", "swipe"],
+    effects: ["blur", "fade", "tint"],
     goal: "study",
     interventionStyle: "balanced"
   };
@@ -198,14 +198,9 @@ function loadSettings() {
     const monitoredApps = Array.isArray(parsed.monitoredApps)
       ? parsed.monitoredApps.filter((appId) => APP_CONFIG.some((app) => app.id === appId))
       : fallback.monitoredApps;
-    let effects = Array.isArray(parsed.effects)
-      ? parsed.effects.filter((effect) => ["blur", "fade", "tint", "swipe"].includes(effect))
+    const effects = Array.isArray(parsed.effects)
+      ? parsed.effects.filter((effect) => ["blur", "fade", "tint"].includes(effect))
       : fallback.effects;
-    const settingsVersion = Number(parsed.settingsVersion) || 1;
-
-    if (settingsVersion < SETTINGS_VERSION && !effects.includes("swipe")) {
-      effects = [...effects, "swipe"];
-    }
 
     return {
       settingsVersion: SETTINGS_VERSION,
@@ -290,8 +285,6 @@ const state = {
   lastLoopAt: performance.now(),
   previewProgress: 0,
   previewDirection: 1,
-  swipeStepsTowardNext: 0,
-  swipeFeedbackFlash: 0,
   selectedStatsDay: 3,
   protectionRunning: false,
   protectionStartedAt: 0,
@@ -329,8 +322,6 @@ const stage4Value = document.getElementById("stage4Value");
 const previewStageValue = document.getElementById("previewStageValue");
 const previewFrame = document.getElementById("previewFrame");
 const previewVideo = document.getElementById("previewVideo");
-const previewSwipeBadge = document.getElementById("previewSwipeBadge");
-const previewSwipeValue = document.getElementById("previewSwipeValue");
 const overviewGoalLabel = document.getElementById("overviewGoalLabel");
 const homeNextCueValue = document.getElementById("homeNextCueValue");
 const homeStyleValue = document.getElementById("homeStyleValue");
@@ -370,9 +361,6 @@ const statsSessionList = document.getElementById("statsSessionList");
 const demoTimer = document.getElementById("demoTimer");
 const stagePill = document.getElementById("stagePill");
 const stageMessage = document.getElementById("stageMessage");
-const swipeFrictionChip = document.getElementById("swipeFrictionChip");
-const swipeFrictionValue = document.getElementById("swipeFrictionValue");
-const swipeFrictionProgress = document.getElementById("swipeFrictionProgress");
 const nextStageButton = document.getElementById("nextStageButton");
 const reminderCard = document.getElementById("reminderCard");
 const reminderText = document.getElementById("reminderText");
@@ -494,20 +482,15 @@ function stageValueToElapsedSeconds(value) {
 }
 
 function orderedEffects() {
-  return ["blur", "fade", "tint", "swipe"].filter((effect) => state.effects.has(effect));
+  return ["blur", "fade", "tint"].filter((effect) => state.effects.has(effect));
 }
 
 function humanEffect(effect) {
   return {
     blur: "Blur",
     fade: "Fade",
-    tint: "Tint",
-    swipe: "Swipe build"
+    tint: "Tint"
   }[effect];
-}
-
-function hasSwipeBuild() {
-  return state.effects.has("swipe");
 }
 
 function humanGoal(goal) {
@@ -825,41 +808,6 @@ function getStage3Progress(elapsed = stageElapsed()) {
   return Math.min((elapsed - state.thresholds[3]) / stageWindow, 1);
 }
 
-function requiredSwipesForProgress(progress) {
-  if (!hasSwipeBuild()) {
-    return 1;
-  }
-
-  return Math.max(1, Math.min(10, 1 + Math.floor(Math.max(0, progress) * 10)));
-}
-
-function currentRequiredSwipes() {
-  if (!isPulseProtected() || state.currentStage !== 3) {
-    return 1;
-  }
-
-  return requiredSwipesForProgress(state.stage3Progress);
-}
-
-function resetSwipeBuild() {
-  state.swipeStepsTowardNext = 0;
-  state.swipeFeedbackFlash = 0;
-}
-
-function pulseSwipeFeedback() {
-  state.swipeFeedbackFlash += 1;
-  const flashId = state.swipeFeedbackFlash;
-  if (swipeFrictionChip) {
-    swipeFrictionChip.classList.add("is-armed");
-    swipeFrictionChip.classList.add("is-bumping");
-  }
-  window.setTimeout(() => {
-    if (swipeFrictionChip && flashId === state.swipeFeedbackFlash) {
-      swipeFrictionChip.classList.remove("is-bumping");
-    }
-  }, 240);
-}
-
 function setFrictionVisuals(target, progress) {
   if (!target) {
     return;
@@ -886,42 +834,6 @@ function syncPulseFriction() {
   pulseView.style.setProperty("--stage3-tint-opacity", state.effects.has("tint") ? `${progress * 0.56}` : "0");
 }
 
-function syncSwipeFrictionUi() {
-  if (previewSwipeBadge) {
-    previewSwipeBadge.classList.toggle("hidden", !hasSwipeBuild());
-  }
-  if (previewSwipeValue) {
-    const previewSwipes = requiredSwipesForProgress(state.previewProgress);
-    previewSwipeValue.textContent = `${previewSwipes} ${previewSwipes === 1 ? "swipe" : "swipes"}`;
-  }
-
-  if (!swipeFrictionChip || !swipeFrictionValue || !swipeFrictionProgress) {
-    return;
-  }
-
-  const showSwipeFriction =
-    state.activeView === "pulse" &&
-    isPulseProtected() &&
-    state.currentStage === 3 &&
-    hasSwipeBuild() &&
-    !hasActiveCooldown();
-
-  swipeFrictionChip.classList.toggle("hidden", !showSwipeFriction);
-
-  if (!showSwipeFriction) {
-    swipeFrictionChip.classList.remove("is-armed", "is-bumping");
-    return;
-  }
-
-  const required = currentRequiredSwipes();
-  const current = Math.min(state.swipeStepsTowardNext, required);
-  const remaining = Math.max(required - current, 0);
-
-  swipeFrictionValue.textContent = `${remaining || required} ${remaining === 1 || (!remaining && required === 1) ? "swipe" : "swipes"} left`;
-  swipeFrictionProgress.textContent = `${current} / ${required}`;
-  swipeFrictionChip.classList.toggle("is-armed", current > 0);
-}
-
 function syncPreviewFriction(deltaMs = 1000 / 24) {
   if (!previewStageValue || !previewFrame) {
     return;
@@ -938,7 +850,6 @@ function syncPreviewFriction(deltaMs = 1000 / 24) {
 
   previewStageValue.textContent = `${Math.round(state.previewProgress * 100)}%`;
   setFrictionVisuals(previewFrame, state.previewProgress);
-  syncSwipeFrictionUi();
 }
 
 function clearReminderTimer() {
@@ -1069,7 +980,6 @@ function resetSession() {
   state.elapsedSeconds = 0;
   state.currentStage = 1;
   state.stage2Dismissed = false;
-  resetSwipeBuild();
   resetElapsedClock();
   clearReminderAndOffset();
   resetHold();
@@ -1419,10 +1329,6 @@ function syncUi() {
     clearReminderAndOffset();
   }
 
-  if (state.currentStage !== 3 || previousStage !== state.currentStage) {
-    resetSwipeBuild();
-  }
-
   const cooldownActive = hasActiveCooldown();
 
   demoTimer.textContent = formatElapsed(state.elapsedSeconds);
@@ -1434,7 +1340,6 @@ function syncUi() {
   stageMessage.classList.toggle("hidden", cooldownActive || !isPulseProtected() || state.currentStage === 1);
   applyStageClasses();
   syncPulseFriction();
-  syncSwipeFrictionUi();
   syncReminderCard();
   syncInterventionSheet();
   syncCooldownSheet();
@@ -1581,7 +1486,6 @@ function commitTrackMove(direction) {
     return;
   }
 
-  resetSwipeBuild();
   state.trackAnimating = true;
   state.currentVideoIndex += direction;
   state.trackDragDeltaY = 0;
@@ -1599,29 +1503,7 @@ function requestTrackMove(direction) {
   if (state.trackAnimating || state.currentStage === 4 || hasActiveCooldown()) {
     return;
   }
-
-  if (state.currentStage !== 3 || !hasSwipeBuild() || !isPulseProtected()) {
-    commitTrackMove(direction);
-    return;
-  }
-
-  const required = currentRequiredSwipes();
-  if (required <= 1) {
-    commitTrackMove(direction);
-    return;
-  }
-
-  state.swipeStepsTowardNext += 1;
-
-  if (state.swipeStepsTowardNext >= required) {
-    commitTrackMove(direction);
-    syncSwipeFrictionUi();
-    return;
-  }
-
-  pulseSwipeFeedback();
-  updateTrackPosition(true);
-  syncSwipeFrictionUi();
+  commitTrackMove(direction);
 }
 
 function onTrackPointerDown(event) {
