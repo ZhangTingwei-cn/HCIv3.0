@@ -58,7 +58,7 @@ const BREAK_COOLDOWN_MS = (15 * 60 * 1000) / APP_TIME_MULTIPLIER;
 const REMINDER_DISMISS_THRESHOLD = 90;
 const REMINDER_AUTO_HIDE_MS = 5000 / APP_TIME_MULTIPLIER;
 const VIDEO_SWIPE_THRESHOLD = 56;
-const DEMO_REENTRY_ELAPSED_MINUTES = 9;
+const SETTINGS_VERSION = 2;
 const DEMO_MODE = new URLSearchParams(window.location.search).has("demo");
 const PLAN_PRESETS = {
   quick: { 2: 5, 3: 10, 4: 15 },
@@ -176,9 +176,10 @@ const STATS_DAYS = [
 
 function defaultSettings() {
   return {
+    settingsVersion: SETTINGS_VERSION,
     monitoredApps: ["pulse"],
     thresholds: { 2: 5, 3: 10, 4: 15 },
-    effects: ["blur", "fade", "tint"],
+    effects: ["blur", "fade", "tint", "swipe"],
     goal: "study",
     interventionStyle: "balanced"
   };
@@ -197,11 +198,17 @@ function loadSettings() {
     const monitoredApps = Array.isArray(parsed.monitoredApps)
       ? parsed.monitoredApps.filter((appId) => APP_CONFIG.some((app) => app.id === appId))
       : fallback.monitoredApps;
-    const effects = Array.isArray(parsed.effects)
-      ? parsed.effects.filter((effect) => ["blur", "fade", "tint"].includes(effect))
+    let effects = Array.isArray(parsed.effects)
+      ? parsed.effects.filter((effect) => ["blur", "fade", "tint", "swipe"].includes(effect))
       : fallback.effects;
+    const settingsVersion = Number(parsed.settingsVersion) || 1;
+
+    if (settingsVersion < SETTINGS_VERSION && !effects.includes("swipe")) {
+      effects = [...effects, "swipe"];
+    }
 
     return {
+      settingsVersion: SETTINGS_VERSION,
       monitoredApps: monitoredApps.length ? monitoredApps : fallback.monitoredApps,
       thresholds: {
         2: Number(parsed.thresholds?.[2]) || fallback.thresholds[2],
@@ -283,6 +290,8 @@ const state = {
   lastLoopAt: performance.now(),
   previewProgress: 0,
   previewDirection: 1,
+  swipeStepsTowardNext: 0,
+  swipeFeedbackFlash: 0,
   selectedStatsDay: 3,
   protectionRunning: false,
   protectionStartedAt: 0,
@@ -320,6 +329,8 @@ const stage4Value = document.getElementById("stage4Value");
 const previewStageValue = document.getElementById("previewStageValue");
 const previewFrame = document.getElementById("previewFrame");
 const previewVideo = document.getElementById("previewVideo");
+const previewSwipeBadge = document.getElementById("previewSwipeBadge");
+const previewSwipeValue = document.getElementById("previewSwipeValue");
 const overviewGoalLabel = document.getElementById("overviewGoalLabel");
 const homeNextCueValue = document.getElementById("homeNextCueValue");
 const homeStyleValue = document.getElementById("homeStyleValue");
@@ -359,6 +370,9 @@ const statsSessionList = document.getElementById("statsSessionList");
 const demoTimer = document.getElementById("demoTimer");
 const stagePill = document.getElementById("stagePill");
 const stageMessage = document.getElementById("stageMessage");
+const swipeFrictionChip = document.getElementById("swipeFrictionChip");
+const swipeFrictionValue = document.getElementById("swipeFrictionValue");
+const swipeFrictionProgress = document.getElementById("swipeFrictionProgress");
 const nextStageButton = document.getElementById("nextStageButton");
 const reminderCard = document.getElementById("reminderCard");
 const reminderText = document.getElementById("reminderText");
@@ -480,15 +494,20 @@ function stageValueToElapsedSeconds(value) {
 }
 
 function orderedEffects() {
-  return ["blur", "fade", "tint"].filter((effect) => state.effects.has(effect));
+  return ["blur", "fade", "tint", "swipe"].filter((effect) => state.effects.has(effect));
 }
 
 function humanEffect(effect) {
   return {
     blur: "Blur",
     fade: "Fade",
-    tint: "Tint"
+    tint: "Tint",
+    swipe: "Swipe build"
   }[effect];
+}
+
+function hasSwipeBuild() {
+  return state.effects.has("swipe");
 }
 
 function humanGoal(goal) {
@@ -511,6 +530,7 @@ function saveSettings() {
   window.localStorage.setItem(
     SETTINGS_STORAGE_KEY,
     JSON.stringify({
+      settingsVersion: SETTINGS_VERSION,
       monitoredApps: [...state.monitoredApps],
       thresholds: state.thresholds,
       effects: [...state.effects],
@@ -805,28 +825,39 @@ function getStage3Progress(elapsed = stageElapsed()) {
   return Math.min((elapsed - state.thresholds[3]) / stageWindow, 1);
 }
 
-function safelySetPointerCapture(target, pointerId) {
-  if (!target || typeof target.setPointerCapture !== "function") {
-    return;
+function requiredSwipesForProgress(progress) {
+  if (!hasSwipeBuild()) {
+    return 1;
   }
 
-  try {
-    target.setPointerCapture(pointerId);
-  } catch {}
+  return Math.max(1, Math.min(10, 1 + Math.floor(Math.max(0, progress) * 10)));
 }
 
-function safelyReleasePointerCapture(target, pointerId) {
-  if (
-    !target ||
-    typeof target.releasePointerCapture !== "function" ||
-    (typeof target.hasPointerCapture === "function" && !target.hasPointerCapture(pointerId))
-  ) {
-    return;
+function currentRequiredSwipes() {
+  if (!isPulseProtected() || state.currentStage !== 3) {
+    return 1;
   }
 
-  try {
-    target.releasePointerCapture(pointerId);
-  } catch {}
+  return requiredSwipesForProgress(state.stage3Progress);
+}
+
+function resetSwipeBuild() {
+  state.swipeStepsTowardNext = 0;
+  state.swipeFeedbackFlash = 0;
+}
+
+function pulseSwipeFeedback() {
+  state.swipeFeedbackFlash += 1;
+  const flashId = state.swipeFeedbackFlash;
+  if (swipeFrictionChip) {
+    swipeFrictionChip.classList.add("is-armed");
+    swipeFrictionChip.classList.add("is-bumping");
+  }
+  window.setTimeout(() => {
+    if (swipeFrictionChip && flashId === state.swipeFeedbackFlash) {
+      swipeFrictionChip.classList.remove("is-bumping");
+    }
+  }, 240);
 }
 
 function setFrictionVisuals(target, progress) {
@@ -855,6 +886,42 @@ function syncPulseFriction() {
   pulseView.style.setProperty("--stage3-tint-opacity", state.effects.has("tint") ? `${progress * 0.56}` : "0");
 }
 
+function syncSwipeFrictionUi() {
+  if (previewSwipeBadge) {
+    previewSwipeBadge.classList.toggle("hidden", !hasSwipeBuild());
+  }
+  if (previewSwipeValue) {
+    const previewSwipes = requiredSwipesForProgress(state.previewProgress);
+    previewSwipeValue.textContent = `${previewSwipes} ${previewSwipes === 1 ? "swipe" : "swipes"}`;
+  }
+
+  if (!swipeFrictionChip || !swipeFrictionValue || !swipeFrictionProgress) {
+    return;
+  }
+
+  const showSwipeFriction =
+    state.activeView === "pulse" &&
+    isPulseProtected() &&
+    state.currentStage === 3 &&
+    hasSwipeBuild() &&
+    !hasActiveCooldown();
+
+  swipeFrictionChip.classList.toggle("hidden", !showSwipeFriction);
+
+  if (!showSwipeFriction) {
+    swipeFrictionChip.classList.remove("is-armed", "is-bumping");
+    return;
+  }
+
+  const required = currentRequiredSwipes();
+  const current = Math.min(state.swipeStepsTowardNext, required);
+  const remaining = Math.max(required - current, 0);
+
+  swipeFrictionValue.textContent = `${remaining || required} ${remaining === 1 || (!remaining && required === 1) ? "swipe" : "swipes"} left`;
+  swipeFrictionProgress.textContent = `${current} / ${required}`;
+  swipeFrictionChip.classList.toggle("is-armed", current > 0);
+}
+
 function syncPreviewFriction(deltaMs = 1000 / 24) {
   if (!previewStageValue || !previewFrame) {
     return;
@@ -871,6 +938,7 @@ function syncPreviewFriction(deltaMs = 1000 / 24) {
 
   previewStageValue.textContent = `${Math.round(state.previewProgress * 100)}%`;
   setFrictionVisuals(previewFrame, state.previewProgress);
+  syncSwipeFrictionUi();
 }
 
 function clearReminderTimer() {
@@ -1001,6 +1069,7 @@ function resetSession() {
   state.elapsedSeconds = 0;
   state.currentStage = 1;
   state.stage2Dismissed = false;
+  resetSwipeBuild();
   resetElapsedClock();
   clearReminderAndOffset();
   resetHold();
@@ -1222,33 +1291,6 @@ function openPulseAtStage(stage) {
   syncUi();
 }
 
-function openPulseForDemoReentry() {
-  state.onboardingSeen = true;
-  setView("pulse");
-  state.stage2Dismissed = false;
-
-  if (hasActiveCooldown()) {
-    state.elapsedSeconds = 0;
-    resetElapsedClock();
-    clearReminderAndOffset();
-    resetHold();
-    syncUi();
-    return;
-  }
-
-  if (!isPulseProtected()) {
-    state.elapsedSeconds = 0;
-    resetElapsedClock();
-    syncUi();
-    return;
-  }
-
-  const reentryValue = Math.max(state.thresholds[2], Math.min(DEMO_REENTRY_ELAPSED_MINUTES, state.thresholds[3] - 1));
-  state.elapsedSeconds = stageValueToElapsedSeconds(reentryValue);
-  resetElapsedClock();
-  syncUi();
-}
-
 function openGentleShortcut(page) {
   state.onboardingSeen = true;
   setView("gentle");
@@ -1377,6 +1419,10 @@ function syncUi() {
     clearReminderAndOffset();
   }
 
+  if (state.currentStage !== 3 || previousStage !== state.currentStage) {
+    resetSwipeBuild();
+  }
+
   const cooldownActive = hasActiveCooldown();
 
   demoTimer.textContent = formatElapsed(state.elapsedSeconds);
@@ -1388,6 +1434,7 @@ function syncUi() {
   stageMessage.classList.toggle("hidden", cooldownActive || !isPulseProtected() || state.currentStage === 1);
   applyStageClasses();
   syncPulseFriction();
+  syncSwipeFrictionUi();
   syncReminderCard();
   syncInterventionSheet();
   syncCooldownSheet();
@@ -1502,7 +1549,7 @@ function startReminderDrag(event) {
   }
 
   state.reminderDragStartY = event.clientY;
-  safelySetPointerCapture(reminderCard, event.pointerId);
+  reminderCard.setPointerCapture(event.pointerId);
 }
 
 function moveReminderDrag(event) {
@@ -1519,7 +1566,7 @@ function endReminderDrag(event) {
     return;
   }
 
-  safelyReleasePointerCapture(reminderCard, event.pointerId);
+  reminderCard.releasePointerCapture(event.pointerId);
 
   if (state.reminderOffsetY >= REMINDER_DISMISS_THRESHOLD) {
     dismissReminder();
@@ -1534,6 +1581,7 @@ function commitTrackMove(direction) {
     return;
   }
 
+  resetSwipeBuild();
   state.trackAnimating = true;
   state.currentVideoIndex += direction;
   state.trackDragDeltaY = 0;
@@ -1547,6 +1595,35 @@ function commitTrackMove(direction) {
   }, 330);
 }
 
+function requestTrackMove(direction) {
+  if (state.trackAnimating || state.currentStage === 4 || hasActiveCooldown()) {
+    return;
+  }
+
+  if (state.currentStage !== 3 || !hasSwipeBuild() || !isPulseProtected()) {
+    commitTrackMove(direction);
+    return;
+  }
+
+  const required = currentRequiredSwipes();
+  if (required <= 1) {
+    commitTrackMove(direction);
+    return;
+  }
+
+  state.swipeStepsTowardNext += 1;
+
+  if (state.swipeStepsTowardNext >= required) {
+    commitTrackMove(direction);
+    syncSwipeFrictionUi();
+    return;
+  }
+
+  pulseSwipeFeedback();
+  updateTrackPosition(true);
+  syncSwipeFrictionUi();
+}
+
 function onTrackPointerDown(event) {
   if (state.currentStage === 4 || state.trackAnimating || hasActiveCooldown()) {
     return;
@@ -1554,7 +1631,7 @@ function onTrackPointerDown(event) {
 
   state.trackDragStartY = event.clientY;
   state.trackDragDeltaY = 0;
-  safelySetPointerCapture(feedViewport, event.pointerId);
+  feedViewport.setPointerCapture(event.pointerId);
 }
 
 function onTrackPointerMove(event) {
@@ -1571,7 +1648,7 @@ function onTrackPointerUp(event) {
     return;
   }
 
-  safelyReleasePointerCapture(feedViewport, event.pointerId);
+  feedViewport.releasePointerCapture(event.pointerId);
   const deltaY = state.trackDragDeltaY;
   state.trackDragStartY = null;
   state.trackDragDeltaY = 0;
@@ -1581,17 +1658,12 @@ function onTrackPointerUp(event) {
     return;
   }
 
-  commitTrackMove(deltaY < 0 ? 1 : -1);
+  requestTrackMove(deltaY < 0 ? 1 : -1);
 }
 
 openButtons.forEach((button) => {
   button.addEventListener("click", () => {
     if (button.dataset.openApp === "pulse") {
-      if (state.protectionRunning && isPulseProtected()) {
-        openPulseForDemoReentry();
-        return;
-      }
-
       openPulseAtStage(1);
       return;
     }
@@ -1806,7 +1878,7 @@ window.addEventListener(
     }
 
     event.preventDefault();
-    commitTrackMove(event.deltaY > 0 ? 1 : -1);
+    requestTrackMove(event.deltaY > 0 ? 1 : -1);
   },
   { passive: false }
 );
@@ -1818,10 +1890,10 @@ window.addEventListener("keydown", (event) => {
 
   if (event.key === "ArrowUp") {
     event.preventDefault();
-    commitTrackMove(-1);
+    requestTrackMove(-1);
   } else if (event.key === "ArrowDown") {
     event.preventDefault();
-    commitTrackMove(1);
+    requestTrackMove(1);
   }
 });
 

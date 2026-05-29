@@ -10,7 +10,7 @@
     <title>Gentle Friction</title>
     <link rel="manifest" href="../manifest.webmanifest" />
     <link rel="apple-touch-icon" href="../Logo.png" />
-    <link rel="stylesheet" href="./style.css?v=cute-feed-1" />
+    <link rel="stylesheet" href="./style.css?v=swipe-build-1" />
   </head>
   <body>
     <main class="stage">
@@ -107,24 +107,26 @@
                       </button>
                     </div>
 
-                    <button class="protection-orb" data-task-action="open-stats" type="button" aria-label="Open protection stats">
-                      <span class="protection-orb-core">
-                        <span class="protection-orb-kicker" id="homeProtectedKicker">Protected time</span>
-                        <strong id="homeProtectedValue">0m 00s</strong>
-                      </span>
-                    </button>
+                    <div class="protection-cluster">
+                      <button class="protection-orb" data-task-action="open-stats" type="button" aria-label="Open protection stats">
+                        <span class="protection-orb-core">
+                          <span class="protection-orb-kicker" id="homeProtectedKicker">Protected time</span>
+                          <strong id="homeProtectedValue">0m 00s</strong>
+                        </span>
+                      </button>
 
-                    <button class="life-card" data-task-action="open-stats" type="button">
-                      <span class="life-card-icon">
-                        <img class="logo-image-tight" src="../Logo.png" alt="" />
-                      </span>
-                      <span class="life-card-divider" aria-hidden="true"></span>
-                      <span class="life-card-copy">
-                        <strong><span id="homePausesValue">0</span> <span>pauses</span></strong>
-                        <small id="homePausesCopy">No pauses yet</small>
-                      </span>
-                      <span class="life-card-arrow" aria-hidden="true">&rsaquo;</span>
-                    </button>
+                      <button class="life-card life-card-merged" data-task-action="open-stats" type="button">
+                        <span class="life-card-icon">
+                          <img class="logo-image-tight" src="../Logo.png" alt="" />
+                        </span>
+                        <span class="life-card-divider" aria-hidden="true"></span>
+                        <span class="life-card-copy">
+                          <strong><span id="homePausesValue">0</span> <span>pauses</span></strong>
+                          <small id="homePausesCopy">No pauses yet</small>
+                        </span>
+                        <span class="life-card-arrow" aria-hidden="true">&rsaquo;</span>
+                      </button>
+                    </div>
                   </section>
                 </section>
 
@@ -271,7 +273,7 @@
                         <p class="overline">Effects</p>
                         <h3>Friction effects</h3>
                       </div>
-                      <span class="mini-badge" id="effectsCount">3</span>
+                      <span class="mini-badge" id="effectsCount">4</span>
                     </div>
 
                     <div class="effect-grid">
@@ -292,6 +294,12 @@
                         <strong>Tint</strong>
                         <p>Add a calm overlay</p>
                       </button>
+
+                      <button class="effect-card is-selected" data-effect="swipe" type="button">
+                        <span class="effect-check" aria-hidden="true"></span>
+                        <strong>Swipe build</strong>
+                        <p>More swipes over time</p>
+                      </button>
                     </div>
                   </section>
 
@@ -307,8 +315,8 @@
                     <div class="preview-frame" id="previewFrame">
                       <video
                         id="previewVideo"
-                        src="../video/app-feed-15/feed_010.mp4?v=video-fix-3"
-                        poster="../video/app-feed-15/feed_010.jpg?v=video-fix-3"
+                        src="../video/app-feed-15/feed_010.mp4?v=cute-feed-1"
+                        poster="../video/app-feed-15/feed_010.jpg?v=cute-feed-1"
                         muted
                         loop
                         playsinline
@@ -316,9 +324,13 @@
                       ></video>
                       <div class="preview-overlay"></div>
                       <div class="preview-tint"></div>
+                      <div class="preview-swipe-badge" id="previewSwipeBadge">
+                        <span>Stage 3</span>
+                        <strong id="previewSwipeValue">1 swipe</strong>
+                      </div>
                       <div class="preview-caption">
                         <p>@studio.craft</p>
-                        <span>Your selected effects appear here before a stronger interruption.</span>
+                        <span>Visual friction builds while swipe effort rises from one to ten.</span>
                       </div>
                     </div>
                   </section>
@@ -432,6 +444,11 @@
                     <span class="floating-pill demo-only" id="demoTimer">00:00</span>
                   </div>
                   <p class="stage-message hidden" id="stageMessage">Monitoring quietly.</p>
+                  <div class="swipe-friction-chip hidden" id="swipeFrictionChip">
+                    <span class="swipe-friction-kicker">Next clip</span>
+                    <strong id="swipeFrictionValue">1 swipe</strong>
+                    <small id="swipeFrictionProgress">0 / 1</small>
+                  </div>
                 </div>
 
                 <div class="side-actions" aria-hidden="true">
@@ -504,6 +521,6 @@
       </section>
     </main>
 
-    <script src="./script.js?v=cute-feed-3"></script>
+    <script src="./script.js?v=swipe-build-2"></script>
   </body>
 </html>
